@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see 1is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+//alert(typeof assert);
+try{
+
+//throw new Error("error:yjx");
+}catch(ex){
+//	logError("fatal",ex.name);
+}
+function logError(sev,msg){
+	var img = new Image();
+	img.src = "http://iot.rkcloud.cn/log?sev="+encodeURIComponent(sev)+"&msg="+encodeURIComponent(msg);
+}
+
+try{
+	var e = new Error("nima","test.html",22);
+	var re = new RangeError("range error!");
+	var re2 = RangeError("range error!");
+	console.log(re === re2);
+	throw re;
+}catch(ex){
+	for(var o in ex){
+		console.log(o+"==>"+ex[o]);
+	}
+	console.log(ex.message);
+	//console.dir(e);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	function Parent(name) {
+		this.name = name || "yjx";
+	}
+	Parent.prototype.getName = function () {
+		console.log(this.name);
+	};
+	function Son() {
+		
+	}
+	
+	//Pattern 1
+	function inherit1(s, p) {
+		s.prototype = new p();
+	}	
+	inherit1(Son,Parent);
+	var s = new Son();
+	s.getName();
+	console.log(s instanceof Parent);
+	console.log(s.name);
+	 
+	//Pattern 2
+	function Son2() {
+		Parent.apply(this, arguments);
+	}
+	var s2 = new Son2("qiaoqiao");
+	console.log(s2.name);  //s2.getName();  error
+	console.log(s2 instanceof Parent);
+	
+	//Pattern 3
+	function Son3() {
+		Parent.apply(this, arguments);
+	}
+	Son3.prototype = new Parent();
+	var s3 = new Son3("wangba");
+	console.log(s3.name);
+	delete s3.name;
+	console.log(s3.name);
+	
+	//Pattern 4
+	function Son4() {
+		
+	}
+	function inherit2(s, p){
+		s.prototype = p.prototype;
+	}
+	inherit2(Son4, Parent);
+	var s4 = new Son4();
+	s4.getName();
+	
+	//Pattern 5
+	function Son5() {
+		
+	}
+	function inherit3(s, p){
+		var f = function () {};
+		f.prototype = p.prototype;
+		s.prototype = new f();
+		s._super = p.prototype;  //是 prototype！
+		s.prototype.constructor = s;
+	}
+	inherit3(Son5, Parent);
+	var s5 = new Son5();
+	s5.getName();
+	console.log(s5 instanceof Parent);
+	
+	//best
+	var inherit4 = (function () {
+		var f = function () {};
+		return function (s, p) {
+			f.prototype = p.prototype;
+			s.prototype = new f();
+			s._super = p.prototype;
+			s.prototype.constructor = s;
+		};
+	})();
+	
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

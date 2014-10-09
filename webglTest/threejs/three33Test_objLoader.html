@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - loaders - OBJ MTL loader</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+		
+		</style>
+	</head>
+
+	<body>
+
+             
+        <script type="x-shader/x-vertex" id="cup-vertexshader">
+            
+            varying vec2 vUv;
+            varying float show;
+            
+            float h = 0.1; 
+            
+            void main() {
+                vUv = uv;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); 
+                gl_Position = projectionMatrix * mvPosition;
+                
+                if(dot(position, normal) < 0.0){
+                    show = 1.0;
+                    
+                    if (uv.y > 0.5) {
+                        show *= -9.0;
+                    }
+                }else{
+                    show = -1.0;
+                }
+                
+                
+            } 
+			
+
+		</script>
+ 
+        <script type="x-shader/x-fragment" id="cup-fragmentshader">
+            precision mediump float;
+             uniform vec3 color;
+            varying vec2 vUv;
+            varying float show;
+            void main() {
+                
+                if( show >= 0.0 ) {
+                    gl_FragColor = vec4(0.27, 0.43, 0.73, 0.3);
+                }else{
+                    discard;
+                }
+            }
+			
+
+		</script>
+    
+		<script src="three.js"></script>
+
+		<script src="OBJLoader.js"></script>
+        <script type="text/javascript" src="TrackballControls1.js"></script>
+
+
+		<script>
+
+			var container, controls;
+
+			var camera, scene, renderer, projector;
+
+			var mouse = {}, material;
+
+			init();
+			animate();
+
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 5, window.innerWidth / window.innerHeight, 0.1, 5000 );
+				camera.position.z = 50;
+                controls = cameraControl(camera);
+				// scene
+
+				scene = new THREE.Scene();
+
+				var ambient = new THREE.AmbientLight( 0xffeedd );
+				scene.add( ambient );
+
+				var directionalLight = new THREE.DirectionalLight( 0xffeedd );
+				directionalLight.position.set( 0, 0, 1 ).normalize();
+				scene.add( directionalLight );
+
+                //texture
+                var texture = THREE.ImageUtils.loadTexture("glass.jpg");
+                texture.needsUpdate = true;
+                
+                	uniforms = {
+					color : {
+						type : "c",
+						value : new THREE.Color(0x5E89CB)
+					},
+                    height : {
+                        type : "f",
+                        value : 0
+                    }
+				};
+                material = new THREE.ShaderMaterial({
+						uniforms : uniforms,
+						vertexShader : document.getElementById('cup-vertexshader').textContent,
+						fragmentShader : document.getElementById('cup-fragmentshader').textContent
+					});
+                
+				// model
+
+				var loader = new THREE.OBJLoader();
+				loader.load( 'cup-half.obj', function ( object ) {
+
+					object.traverse(function(child){
+                        if(child instanceof THREE.Mesh){
+                        
+                 //           child.material.map = texture;
+                     //       child.material.transparent = true;
+                 //           child.material.opacity = 0.2;
+                 
+                            child.material = material;
+                           
+                        }
+                    });
+                    object.position.set(0, 0, 0);
+                    cup = object.children[0];
+					scene.add( object );
+
+				} );
+
+               { restitution: .2 }
+                
+				//renderer
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+                projector = new THREE.Projector();
+				//events
+
+				window.addEventListener( 'resize', onWindowResize, false );
+                renderer.domElement.addEventListener("mousedown", onMouseDown, false);
+				renderer.domElement.addEventListener("mousemove", onMouseMove, false);
+				renderer.domElement.addEventListener("mouseup", onMouseUp, false);
+				window.addEventListener("keydown", onKeyDown, false);
+     
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+            
+          var oldX, oldY, mode;
+			function onMouseDown(event) {
+				event.preventDefault();
+				if (!mouse.x) {
+					onMouseMove(event);
+					return;
+				}
+
+				if (intersect.length > 0) {
+					oldX = mouse.x;
+					oldY = mouse.y;
+					mode = "moveCup";
+					controls.enabled = false;
+				} else {
+
+					controls.enabled = true;
+
+				}
+			}
+
+			function onMouseMove(event) {
+				event.preventDefault();
+
+				mouse.x = event.clientX / window.innerWidth * 2 - 1;
+				mouse.y =  - event.clientY / window.innerHeight * 2 + 1;
+
+				var vector = new THREE.Vector3(mouse.x, mouse.y, 0);
+				//把这个向量从屏幕转化为场景中的向量
+				projector.unprojectVector(vector, camera);
+
+				//新建一条从相机的位置到vector向量的一道光线
+				var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+				intersect = raycaster.intersectObject(cup);
+
+				if (intersect.length > 0 || mode == "moveCup") {
+
+					container.style.cursor = "pointer";
+
+				} else {
+
+					container.style.cursor = "auto";
+
+				}
+
+				if (mode == "moveCup") {
+
+					cup.rotation.z += (oldX - mouse.x) ;
+					cup.rotation.z += -(oldY - mouse.y);
+               		oldX = mouse.x;
+					oldY = mouse.y;
+
+				} 
+       
+			}
+
+			function onMouseUp(event) {
+				event.preventDefault();
+				mode = "moveCamera";
+				controls.enabled = true;
+
+			}
+
+			function onKeyDown(event) {
+				switch (event.keyCode) {
+				case 32:
+					controls.reset();
+					break;
+				default:
+					return;
+				}
+			}
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+
+			}
+
+			function render() {
+                controls.update();
+				renderer.render( scene, camera );
+
+			}
+            
+              function cameraControl(camera){
+                   var controls = new THREE.TrackballControls( camera );
+                
+                    //旋转速度
+                    controls.rotateSpeed = 1.0;
+                    //变焦速度
+                    controls.zoomSpeed = 1.2;
+                    //平移速度
+                    controls.panSpeed = 0.8;
+                    //是否不变焦
+                    controls.noZoom = false;
+                    //是否不平移
+                    controls.noPan = true;
+                    //可能是惯性 true没有惯性
+                    controls.staticMoving = false;
+                    //动态阻尼系数 就是灵敏度
+                    controls.dynamicDampingFactor = 0.3;
+                    
+                    return controls;
+         }
+
+		</script>
+
+	</body>
+</html>

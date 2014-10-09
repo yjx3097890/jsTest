@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+//strict!
+    window.uuu||(uuu=1);
+ //   var aa = 1;
+    function test ( aa ) {
+        aa || (aa = 2);
+    }
+    test(uuu = 6);
+    console.log(uuu);
+    
+    undefined = 1;
+    console.log(undefined);
+    
+    function foobar () { 
+        console.log(uuu);
+    //    foobar(); 
+        }
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

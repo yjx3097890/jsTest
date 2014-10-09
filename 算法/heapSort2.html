@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+//堆从0开始，节点总数为m（比序号多一）
+//子节点i的父节点为floor((i-1)/2)
+//大于floor(m/2-1)的节点都为叶子
+//堆的层数为ceil(log(m+1)/log(2))
+//父节点i的左子节点为2i+1，有子节点为2i+2
+
+//大根堆
+	var Heap = function (arr) {
+        
+        this.array = arr.concat();
+        this.buildHeap();
+        
+    }
+    Heap.prototype = {
+        constructor : Heap,
+        //调整i节点，j为节点个数
+        get length () {
+            return this.array.length;
+        },
+        heapify: function (i, j) {
+            var maxSon;
+            if ( i <= Math.floor(j/2-1) ) {
+                if (2*i + 2 < j) {
+                    maxSon = this.max(2*i+1, 2*i+2);
+                }else {
+                    maxSon = 2*i + 1;
+                }
+                if (this.array[maxSon]>this.array[i]) {
+                    this.swap(i, maxSon);
+                    i=maxSon;
+                    this.heapify(i, j);
+                }
+            }
+        },
+        buildHeap: function () {
+            var len = this.array.length, f = Math.floor(len/2-1);
+            while (f>=0) {
+                this.heapify(f, len);
+                f--;
+            } 
+        },
+        push: function (ele) {
+            var len , f, i;
+            this.array.push(ele);
+            len = this.array.length;
+            i = len-1;
+            f = Math.floor(len/2 - 1);
+            while (f>=0 &&this.array[f] < this.array[i]) {
+                    this.swap(f, i);
+                    i = f;
+                    f = Math.floor((i-1)/2);
+            }
+            return this;
+        },
+        pop: function () {
+            this.array.pop();
+        },
+        toString : function () {
+            var i , j, k, len = this.array.length, string="", high = Math.ceil(Math.log(len+1) / Math.log(2)) ;
+            for (i=0; i< high; i++) {
+                k=i;
+                while (high-k>0) {
+                    string += " ";
+                    k++;
+                }
+                for (j=0; j<Math.pow(2, i) ; j++) {
+                    if (Math.pow(2, i)-1 +j < len) {
+                        string += this.array[Math.pow(2, i)-1 +j];
+                        string+=" ";
+                    }
+                }
+                string += "\n";
+            }
+            return string;
+        },
+        swap: function (i, j) {
+            var temp = this.array[i];
+            this.array[i] = this.array[j];
+            this.array[j] = temp;
+        },
+        max: function (i, j) {
+            if (typeof this.array[i] === "undefined") {
+                return j;
+            }
+            if (typeof this.array[j] === "undefined") {
+                return i;
+            }
+            if (this.array[i] < this.array[j]) {
+                return j;
+            } else {
+                return i;
+            }
+        }
+    }
+	
+    function heapSort (array) {
+        var heap = new Heap(array),
+            len = heap.length,
+            i=len-1;
+        while (i>0) {
+            heap.swap(0, i);
+            heap.heapify(0, i);
+            i--;
+        }
+        return heap.array;
+    }
+	var test = [2,4,6,2,9,7,5,8,3,21,24,1,7];
+    
+    var h = new Heap(test);
+    h.push(12).push(21);
+    console.log(h.toString());
+    
+ 	
+	console.log(heapSort(test));
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+﻿<!DOCTYPE HTML>
+<html>
+<body>
+    <canvas id="myCanvas" width="400" height="200" style="border: 1px solid #c3c3c3;">
+Your browser does not support the canvas element.
+</canvas>
+    <script type="text/javascript">
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "#163B62";
+        ctx.beginPath();
+        ctx.arc(70, 70, 40, 0, Math.PI * 2, false);
+        ctx.stroke();
+        ctx.strokeStyle = "#000000";
+        ctx.beginPath();
+        ctx.arc(160, 70, 40, 0, Math.PI * 2, false);
+        ctx.stroke();
+        ctx.strokeStyle = "#BF0628";
+        ctx.beginPath();
+        ctx.arc(250, 70, 40, 0, Math.PI * 2, false);
+        ctx.stroke();
+        ctx.strokeStyle = "#EBC41F";
+        ctx.beginPath();
+        ctx.arc(110, 110, 40, 0, Math.PI * 2, false);
+        ctx.stroke();
+        ctx.strokeStyle = "#198E4A";
+        ctx.beginPath();
+        ctx.arc(200, 110, 40, 0, Math.PI * 2, false);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#163B62";
+        ctx.beginPath();
+        ctx.arc(70, 70, 40, Math.PI * 1.9, Math.PI * 2.1, false);
+        ctx.stroke();
+        ctx.strokeStyle = "#000000";
+        ctx.beginPath();
+        ctx.arc(160, 70, 40, Math.PI * 0.9, Math.PI * 2.1, false);
+        ctx.stroke();
+        ctx.strokeStyle = "#BF0628";
+        ctx.beginPath();
+        ctx.arc(250, 70, 40, Math.PI * 0.9, Math.PI * 1.1, false);
+        ctx.stroke();
+
+    </script>
+</body>
+</html>

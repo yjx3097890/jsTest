@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title><%= title.substr(0,1) + (1+2) %></title>
+</head>
+<body>
+	<% if (names.length > 0 ) { %>
+		<ul>
+			<% names.forEach(function (name) { %>
+				<li><%= name %></li>
+			<% }); %>
+		</ul>
+	<% } %>
+</body>
+</html>

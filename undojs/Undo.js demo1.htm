@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv = "Content-Type" content = "text/html; charset=UTF-8" >
+    <meta charset = "utf-8" >
+     <script src = "lib/undo.js" ></script>
+    <script src="./lib/jquery.js"></script>
+    <title>Undo.js demo</title>
+
+    <style>
+        body {
+            font: 62.5% Verdana, Arial, sans-serif;
+        }
+    </style>
+    <script>
+        $(function () {
+            var stack = new Undo.Stack(),
+                 //上命令构造函数
+                UpCommand = Undo.Command.extend({
+                        constructor: function (li) {
+                            this.li = li;
+                        },
+                        execute: function () {
+                            this.li.insertBefore(this.li.prev());
+                        },
+                        undo: function () {
+                            this.li.insertAfter(this.li.next());
+                        }
+                    }),
+                 //下命令构造函数
+                DownCommand = UpCommand.extend({
+                        //与up相反
+                        execute: UpCommand.prototype.undo,
+                        undo: UpCommand.prototype.execute
+                    });
+            //stack更新时执行
+            stack.changed = function () {
+                stackUI();
+                listUI();
+            };
+
+            var undo = $(".undo"),
+                    redo = $(".redo"),
+                    dirty = $(".dirty");
+
+            //更新按钮状态
+            function stackUI() {
+                undo.attr("disabled", !stack.canUndo());
+                redo.attr("disabled", !stack.canRedo());
+                dirty.toggle(stack.dirty());
+            }
+
+            //更新列表状态
+            function listUI() {
+                $("ul li button").attr("disabled", false);
+                $("ul li:first .up").attr("disabled", true);
+                $("ul li:last .down").attr("disabled", true);
+            }
+
+            stackUI();
+            listUI();
+            //绑定do按钮
+            $(document.body).on("click",".undo, .redo, .save", function () {
+                var what = $(this).attr("class");
+                stack[what]();
+                return false;
+            });
+             //绑定上下按钮
+            $(document.body).on( "click", ".up, .down", function () {
+                var what = $(this).attr("class");
+                if (what == "up") {
+                    //执行操作命令
+                    stack.execute(new UpCommand($(this).parent()));
+                } else {
+                    stack.execute(new DownCommand($(this).parent()));
+                }
+                return false;
+            });
+
+        });
+    </script>
+</head>
+
+<body>
+<button class="undo" href="#">Undo</button>
+<button class="redo" href="#" disabled="">Redo</button>
+<button class="save" href="#">Save<span class="dirty" style="display: inline;">*</span></button>
+<ul>
+    <li>
+        <span>2. item</span>
+        <button class="up" href="#" disabled="">Up</button>
+        <button class="down" href="#">Down</button>
+    </li>
+    <li>
+        <span>1. item</span>
+        <button class="up" href="#">Up</button>
+        <button class="down" href="#">Down</button>
+    </li>
+    <li>
+        <span>3. item</span>
+        <button class="up" href="#">Up</button>
+        <button class="down" href="#">Down</button>
+    </li>
+
+
+    <li>
+        <span>4. item</span>
+        <button class="up" href="#">Up</button>
+        <button class="down" href="#">Down</button>
+    </li>
+    <li>
+        <span>5. item</span>
+        <button class="up" href="#">Up</button>
+        <button class="down" href="#" disabled="">Down</button>
+    </li>
+</ul>
+
+</body>
+</html>

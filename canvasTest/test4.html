@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>word</title>
+        <meta charset="utf-8"/>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript">
+            var canvas, context;
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+           
+           context.textAlign = "center";
+           context.font = "bold 100px 宋体";
+           context.fillStyle = "#596384";
+           context.fillText("阎", canvas.width / 2, canvas.height / 2);
+           var wordWidth = context.measureText("阎").width / 2;
+           
+           context.font = "bold 80px 宋体";
+           context.fillStyle = "#717B9F";
+           context.globlaAlpha = 0.8;
+           context.fillText("继", canvas.width / 2 + wordWidth + context.measureText("继").width / 2, canvas.height / 2);
+           wordWidth += context.measureText("继").width;
+           
+           context.font = "bold 60px 宋体";
+           context.fillStyle = "#8F97B3";
+           context.globlaAlpha = 0.6;
+           context.fillText("先", canvas.width / 2 + wordWidth + context.measureText("先").width / 2, canvas.height / 2);
+           wordWidth += context.measureText("先").width;
+           
+         // CBCFDB ADB3C7  8F97B3  717B9F  596384
+        </script>
+    </body>
+</html>

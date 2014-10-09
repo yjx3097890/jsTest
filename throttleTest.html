@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+<div style="border:2px;border-color:red;border-style:solid;"></div>
+
+<script type="text/javascript">
+
+	function resizeDiv(){
+		var div = document.body.firstElementChild;
+		div.style.height=div.offsetWidth/2+"px";
+		console.log(div.offsetWidth);
+	}
+	window.onresize=function(){
+		throttle(resizeDiv);
+	};
+	
+	
+	function throttle(fn,context){
+		clearTimeout(fn.tId);
+		fn.tId = setTimeout(function(){
+			fn.call(context);
+		},1000);
+	}
+</script>
+</body>
+</html>

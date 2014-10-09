@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var Gadget = function (price) {
+		this.price = price;
+	};
+	Gadget.isShiny = function () {
+		var message = "you bet";
+		if (this instanceof Gadget) {
+			message += this.price;
+		}
+		return message;
+	};
+	Gadget.prototype.isShiny = Gadget.isShiny;
+	
+	var g = new Gadget(100);
+	console.log(g.isShiny());
+	console.log(Gadget.isShiny());
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

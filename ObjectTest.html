@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var a = new Object();
+	console.log(a.constructor === Object);
+	
+	var b = new Object(12);
+	console.log(b.constructor === Object);
+	console.log(b.constructor === Number);
+	
+	var c = new Object("haha");
+	console.log(c.constructor === Object);
+	console.log(c.constructor === String);
+	
+	var MyObject = function () {
+		this.name = "lili";
+		
+		var that = {};
+		that.name = "that";
+		return "hello";  
+		//return that;
+	}
+	
+	MyObject.prototype.getName = function () {
+		return this.name;
+	}
+	
+	var mo = new MyObject();
+	console.log(mo.name);
+	// console.log(mo.getName());
+	
+	var mo2 = MyObject();
+	console.log(mo2.name);
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

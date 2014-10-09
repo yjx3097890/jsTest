@@ -1,0 +1,43 @@
+<script>
+
+//alert({}.constructor);
+function Person(){
+	this.name = "person";
+	this.walk = function(){
+		alert("walk");
+	}
+}
+
+var man = new Person();
+//man.walk();
+//var man = {};
+Person.call(man);
+man.walk();
+alert(man instanceof Person);  //false
+alert(man.__proto__ == Person.prototype);  //false 
+alert(man.__proto__ == Object.prototype);  //true
+var boy = {};
+boy.__proto__ = man;
+boy.cry = function(){
+	alert("cry");
+}
+boy.walk();
+
+var Girl = function(){};
+Girl.prototype = new Person();
+var alice = new Girl();
+alice.walk();
+Girl.prototype.smile = function(){
+	alert("smile");
+}
+alice.smile();
+
+boy.constructor.prototype = alice;
+boy.cry();
+boy.walk();
+boy.smile();
+
+
+
+
+</script>

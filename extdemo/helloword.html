@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+hello world
+</title>
+<link rel="stylesheet" type="text/css" href="extjs/resources/css/ext-all.css"></link>
+<script type="text/javascript" src="extjs/bootstrap.js"></script>
+<script type="text/javascript" >
+Ext.onReady(function(){
+	//Ext.MessageBox.alert("hello world.",'Hello world!');
+	
+	var fb = Ext.Function.createBuffered(function(i){
+			var now = new Date();
+			while(new Date()-now<1000)
+			console.log(new Date()-now);
+			alert(i);
+			;
+			
+		},1000);
+	fb("ww");
+	fb("ee");
+	fb("qq");
+	
+	var setValue = Ext.Function.flexSetter(function(name, value) {
+    this[name] = value;
+});
+
+// Afterwards
+// Setting a single name - value
+setValue('name1', 'value1');
+
+// Settings multiple name - value pairs
+setValue({
+    name1: 'value1',
+    name2: 'value2',
+    name3: 'value3'
+});
+
+alert(name1);
+
+});
+</script>
+</head>
+<body>
+
+</body> 
+</html>

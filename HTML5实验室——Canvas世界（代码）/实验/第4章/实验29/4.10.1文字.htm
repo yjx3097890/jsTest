@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+
+<style type="text/css">
+input.css3btn{
+  background: -moz-linear-gradient(270deg, #d2ebf8, #0c8ab5);
+  background: -webkit-linear-gradient(top, #d2ebf8, #0c8ab5);
+  background: -o-linear-gradient(top, #d2ebf8, #0c8ab5);
+  filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#000099CC', EndColorStr='#FF0087B4');
+  border-top: 1px solid #38538c;
+  border-right: 1px solid #1f2d4d;
+  border-bottom: 1px solid #151e33;
+  border-left: 1px solid #1f2d4d;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 10px 1px #5c8bee, 0px 1px 0 #1d2c4d, 0 2px 0px #1f3053, 0 4px 4px 1px #111111;
+  color:#f0f0f0;
+  font: bold 20px "helvetica neue", helvetica, arial, sans-serif;
+  padding: 10px 0 10px 0;
+  text-align: center;
+  text-shadow: 0px -1px 1px #1e2d4d;
+  width: 150px;
+   background-clip: padding-box; }
+  input.css3btn:hover {
+    box-shadow: inset 0 0px 20px 1px #87adff, 0px 1px 0 #1d2c4d, 0 3px 0px #1f3053, 0 4px 4px 1px #111111;
+    cursor: pointer; }
+  input.css3btn:active {
+    box-shadow: inset 0 1px 10px 1px #5c8bee, 0 1px 0 #1d2c4d, 0 2px 0 #1f3053, 0 4px 3px 0 #111111;
+    margin-top: 1px; }
+    </style>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+    <canvas style="border: solid 15px #222;  background-color: #111;color: #CCC;" width="430" height="400" id="myCanvas">
+    </canvas>
+    <br/>
+    <br/>
+    <input id="Text1" value="心" type="text" />
+    <input id="Button1"  class="css3btn" type="button" value="设置文字" onclick="return Button1_onclick()" /><input
+        id="Button2" type="button"  class="css3btn" onclick="return Button2_onclick()" value="毁灭文字" />
+           <script>
+               var ps = [];
+               canvas = document.getElementById("myCanvas");
+               cxt = canvas.getContext("2d");
+               var balls = [];
+               var breakTag;
+               function init() {
+                   balls.length = 0;
+                   ps.length = 0;
+                   cxt.clearRect(0, 0, 430, 400);
+                   var tex = document.getElementById("Text1").value;
+                   cxt.fillStyle = "rgba(0,0,0,1)";
+                   cxt.fillRect(0, 0, 430, 400);
+                   cxt.fillStyle = "rgba(255,255,255,1)"
+                   cxt.font = "bolder 400px 宋体";
+                   cxt.textBaseline = 'top';
+                   cxt.fillText(tex, 20, 20);
+                   for (y = 1; y < 400; y += 8) {
+                       for (x = 1; x < 400; x += 8) {
+                           imageData = cxt.getImageData(20 + x, 20 + y, 1, 1);
+                           if (imageData.data[0] > 170) {
+                               ps.push({ px: 20 + x, py: 20 + y });
+                           }
+                       }
+
+                   }
+                   cxt.fillStyle = "rgba(0,0,0,1)";
+                   cxt.fillRect(20, 20, 400, 400);
+
+                   for (i in ps) {
+                       var ball = {
+                           x: ps[i].px,
+                           y: ps[i].py,
+                           r: 4,
+                           vx: getRandomNumber(-10, 10),
+                           vy: getRandomNumber(0, 100)
+                       };
+                       balls.push(ball);
+
+                   }
+                   cxt.fillStyle = "#fff";
+                   for (i in balls) {
+                       cxt.beginPath();
+                       cxt.arc(balls[i].x, balls[i].y, balls[i].r, 0, Math.PI * 2, true);
+                       cxt.closePath();
+                       cxt.fill();
+
+                   }
+               }
+
+
+               var cyc = 10;
+               var a = 80;
+
+
+               var dropAsync = eval(Jscex.compile("async", function () {
+
+                   while (true) {
+                       if (breakTag) {
+                           break;
+                       }
+                       cxt.fillStyle = "rgba(0, 0, 0, .3)";
+                       cxt.fillRect(0, 0, canvas.width, canvas.height);
+                       cxt.fillStyle = "#fff";
+
+                       for (i in balls) {
+                           cxt.beginPath();
+                           cxt.arc(balls[i].x, balls[i].y, balls[i].r, 0, Math.PI * 2, true);
+                           cxt.closePath();
+                           cxt.fill();
+                           balls[i].y += balls[i].vy * cyc / 1000;
+                           balls[i].x += balls[i].vx * cyc / 1000;
+                           if (balls[i].r + balls[i].y >= canvas.height) {
+                               if (balls[i].vy > 0) {
+                                   balls[i].vy *= -0.7;
+                               }
+                           }
+                           else {
+                               balls[i].vy += a;
+                           }
+                       }
+                       $await(Jscex.Async.sleep(cyc));
+                   }
+               }))
+
+               function getRandomNumber(min, max) {
+                   return (min + Math.floor(Math.random() * (max - min + 1)))
+               }
+
+
+               init();
+               function Button1_onclick() {
+                   breakTag = true;
+                   init();
+
+               }
+               function Button2_onclick() {
+                   breakTag = false;
+                   dropAsync().start();
+
+               }
+    </script>
+
+
+</body>
+</html>

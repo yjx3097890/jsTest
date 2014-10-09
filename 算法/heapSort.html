@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+//堆从0开始，节点总数为m
+//子节点i的父节点为floor((i-1)/2)
+//大于floor(m/2-1)的节点都为叶子
+//父节点i的左子节点为2i+1，有子节点为2i+2
+//这里使用大根堆
+
+	function buildHeap(array){
+		var len=array.length,f = Math.floor(len/2-1);
+		do{
+			heapify(array,f,len);
+			f--;
+		}while(f>=0)
+	}
+    //堆化数组array，调整i节点，j为节点个数
+	function heapify(array,i,j){
+		var m=i,maxindex;
+		if(m<=Math.floor(j/2-1)){
+            if (2*m+2 < j) {
+                maxindex=max(array,2*m+1,2*m+2);
+            }else{
+                maxindex = 2*m+1;
+            }
+			if(array[m]<array[maxindex]){
+				swap(array,m,maxindex);
+				m=maxindex;
+				heapify(array,m,j);
+			}
+		}		
+	}
+	function heapSort(array){
+		var i,len=array.length;
+		buildHeap(array);
+		for(i=0;i<len-1;i++){
+			swap(array,0,len-1-i);
+			heapify(array,0,len-1-i);
+		}
+	}
+	function swap(array,i,j){
+		var temp=array[i];
+		array[i]=array[j];
+		array[j]=temp;
+	}
+    //取i,j位置上最大的数
+	function max(array,i,j){
+		if(typeof array[j] == "undefined"){
+			return i;
+		}
+		if(typeof array[i] == "undefined"){
+			return j;
+		}
+		if(array[i]>array[j]){
+			return i;
+		}else{
+			return j;
+		}
+	}
+	
+	var test = [2,4,6,2,3,7,5,6,8,9];
+	heapSort(test);
+	console.log(test);
+</script>
+
+
+</body>
+</html>

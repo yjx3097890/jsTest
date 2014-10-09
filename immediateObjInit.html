@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	({
+		max: 600,
+		min: 90,
+		getNum: function () {
+			return this.max + " : " + this.min;
+		},
+		init: function () {
+			console.log(this.getNum());
+		}
+	}).init();	
+	({
+		max: 600,
+		min: 90,
+		getNum: function () {
+			return this.max + " : " + this.min;
+		},
+		init: function () {
+			console.log(this.getNum());
+		}
+	}.init());
+/** error
+	{
+		max: 600,
+		min: 90,
+		getNum: function () {
+			return this.max + " : " + this.min;
+		},
+		init: function () {
+			console.log(this.getNum());
+		}
+	}.init();
+	*/
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

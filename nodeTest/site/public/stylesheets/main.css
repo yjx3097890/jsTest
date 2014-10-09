@@ -1,0 +1,19 @@
+body {
+  background-color: #00f;
+  color: #f00;
+}
+p,
+tr {
+  background-color: #ff0;
+  color: #f00;
+}
+div,
+p {
+  padding: 0;
+}
+p:hover {
+  color: #0ff;
+}
+div:hover {
+  background-color: #f00;
+}

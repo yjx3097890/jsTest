@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>ball sport</title>
+        <meta charset="utf-8"/>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src = "wind-all-0.7.3.js"></script>
+        <script type="text/javascript">
+            var  f = 60, r = 10,
+            canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d");
+            var ball = {
+                position: {x:  canvas.width / 2, y: canvas.height / 2},
+                radius: r,
+                velocity: {x: 100, y: 150}
+            };
+            
+            var draw = eval(Wind.compile("async", function() {
+            
+                while(true){
+                    context.fillStyle = "rgba(0, 0, 0, 0.1)";  //实现残影效果
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                   context.beginPath();
+                   context.fillStyle = "#DA3571";
+                   context.arc(ball.position.x, ball.position.y, ball.radius, 0, Math.PI * 2);
+                   context.fill();
+                    
+                   if (ball.position.x <= ball.radius || ball.position.x >= canvas.width - ball.radius){
+                        ball.velocity.x = -ball.velocity.x;
+                   }else if (ball.position.y <= ball.radius || ball.position.y >= canvas.height - ball.radius) { 
+                       ball.velocity.y = -ball.velocity.y;
+                   }
+                   
+                    ball.position.x += ball.velocity.x * 1 / f;
+                    ball.position.y += ball.velocity.y * 1 / f;
+                   
+                   $await(Wind.Async.sleep(1000 / f));
+                   
+                  // canvas.width = canvas.width;
+                }
+                
+            })); 
+            
+            draw().start();
+        </script>
+    </body>
+</html>

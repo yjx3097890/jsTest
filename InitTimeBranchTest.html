@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var util = {
+		addEvent: (function () {
+			if (typeof document.addEventListener === "function") {
+				return function (ele, type, fn) {
+					ele.addEventListener(type, fn);
+				}
+			} else if (typeof document.attachEvent === "function") {
+				return function (ele, type, fn) {
+					ele.attachEvent('on' + type, fn);
+				}
+			} else {
+				return function (ele, type, fn) {
+				    ele["on" + type] = fn;
+				}
+			}
+		})(),
+		removeEvent:  (function () {
+			if (typeof document.removeEventListener === "function") {
+				return function (ele, type, fn) {
+					ele.removeEventListener(type, fn);
+				}
+			} else if (typeof document.detachEvent === "function") {
+				return function (ele, type, fn) {
+					ele.detachEvent("on" + type, fn);
+				}
+			} else {
+				return function (ele, type, fn) {
+					ele["on" + type] = null;
+				}
+			}
+		})()
+	};
+	
+//	util.addEvent();
+//	util.addEvent();
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

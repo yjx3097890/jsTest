@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+<button id="yjx">yjx</button>
+<script type="text/javascript">
+	var person = {
+		name:"yjx",
+		callName:function(event){
+			alert(this.name+"--"+event.type);
+		}
+	};
+	var person1 = (function(){
+		var o = {
+		name:"yjx",
+		callName:function(event){
+			alert(o.name+"--"+event.type);
+		}};
+		return o;
+		})();
+		
+	Object.freeze(person1);
+	person1.age=0;
+	person1={age:1};
+	alert(person1.age);
+		
+	var bt = document.querySelector("button");
+//bt.addEventListener("click",function(event){ person.callName(event);});
+	bt.addEventListener("click",bind(person.callName,person));
+	
+	function bind(fn,context){
+		return function(){
+			return fn.apply(context,arguments);
+		};
+	}
+	
+	
+//function currying
+function curry(fn){
+	var args = Array.prototype.slice.call(arguments,1);
+	return function(){
+		var tempArgs = Array.prototype.slice.call(arguments);
+		var finalArgs = args.concat(tempArgs);
+		return fn.apply(null,finalArgs);
+	};
+}
+
+function add(a,b){
+	return a+b;
+}
+
+var curriedAdd = curry(add,2,9);
+alert(curriedAdd(3));
+
+</script>
+
+</body>
+</html>

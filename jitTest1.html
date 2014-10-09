@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>jit stack area</title>
+<script type="text/javascript" src="Jit/jit.js"></script>
+</head>
+<body>
+<div id="infovis"></div>
+
+<script type="text/javascript">
+	var infovis=$jit.id("infovis");
+	//var temp = $jit.util.splat({a:"aaa",b:function(){alert("b");}},4);
+	//console.log(temp);
+	console.log($jit.util.reduce([3, 4, 5], function(x, y) { return x + y; }) );
+</script>
+</body>
+</html>

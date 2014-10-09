@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+contextmenu
+</title>
+</head>
+<body>
+<div>
+<h1><a href="#"> 点击我会有一个custom contextmenu，其他地方是默认menu。<a></h1>
+</div>
+<ul style="position:absolute;background-color:silver;visibility:hidden" id="menu">
+	<li onclick="alert('add');">添加</li>
+	<li>删除</li>
+	<li>刷新</li>
+</ul>
+</body>
+<script>
+(function(){
+var div = document.getElementsByTagName("div")[0];
+var menu=document.getElementById("menu");
+div.addEventListener("contextmenu",function(event){
+	event.preventDefault();
+	console.log(event.target);
+	menu.style.top=event.clientY+"px";
+	menu.style.left=event.clientX+"px";
+	menu.style.visibility="visible";
+});
+document.addEventListener("click",function(){
+	
+	menu.style.visibility="hidden";
+},true);
+window.addEventListener("beforeunload",function(event){
+	event.returnValue="ok";
+	return "fuck";
+});
+})();
+</script>
+</html>

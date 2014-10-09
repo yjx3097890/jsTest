@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+</head>
+<body>
+<p><span><b>XX</b></span></p>
+<p><span><b>XX</b></span></p>
+<p><span>XX</span></p>
+<p></p>
+
+
+<table>
+	<tr></tr>
+	<tr></tr>
+	<tr></tr>
+<table>
+
+
+<svg></svg> 
+<script type="text/javascript">
+var p = d3.select("body").selectAll("p");
+var b= d3.select("body");
+var span = p.selectAll("span");
+var h = span.selectAll("b");
+var h1 = span.select("b");
+
+console.log(b);
+console.log(b[0]);
+console.log(b[0][0]);
+
+console.log(p);
+console.log(p[0].parentNode);
+console.log(p[0][0]);
+
+console.log(span);
+
+console.log(h);
+console.log(h1);
+
+console.log("==========================");
+
+var tab = d3.select("table");
+var tr = tab.selectAll("tr");
+console.log(tr);
+//tr.append("td");
+console.log(tab.selectAll("tr").append("p"));
+tab.datum(10);
+console.log(tab.node().__data__);
+
+var letters = [
+	{name:"A",frequency:23},
+	{name:"B",frequency:56},
+	{name:"C",frequency:11},
+	{name:"D",frequency:67},
+	{name:"E",frequency:100}
+];
+
+var namefn = function(d){
+	return d.name;
+}
+
+var da1 = h.data(letters).exit();
+console.log(da1);
+
+</script>
+
+
+</body>
+</html>

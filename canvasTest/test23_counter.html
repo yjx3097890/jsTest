@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+		<head>
+            <title>wave
+            </title>
+        </head>
+    <body>
+    	<canvas id="canvas" width="800" height="500" style="border:solid 1px #aaaaaa; background-color:#000"></canvas>
+    	<script type="text/javascript" src="Vector2.js"></script>
+    	<script type="text/javascript" src="counter.js"></script>
+    	<script type="text/javascript" src="ball.js"></script>
+    	<script type="text/javascript" src="wind-all-0.7.3.js"></script>
+    	<script type="text/javascript" src="JSLINQ.js"></script>
+
+        <script type="text/javascript">
+            var canvas = document.getElementById("canvas"),
+                context = canvas.getContext("2d"),
+            	balls = [], ball, temparr,
+                 drops = [],
+                 dif = 25,
+                 num = 0,
+                 i,
+                 t = 0, //处理不同步
+                counter = new Counter(new Vector2(350, 150), 90);
+
+
+		   	var count = eval(Wind.compile("async", function () {
+                    balls = counter.draw(context , num);
+         		while (true) {
+         			context.clearRect(0,0,canvas.width, canvas.height);
+                    if (drops.length > 100) drops.shift();
+                    for (i= balls.length -1; i>=0; i--){
+                        ball = balls[i];
+                        ball.draw(context, "#ff0000");
+                    }
+                     for (i = drops.length - 1; i>=0 ; i--) {
+                        ball = drops[i];
+                         ball.move(1/dif);
+                         ball.draw(context, "#ff0000");
+                         if (ball.hasImpactSide(canvas, {down : true}) && ball.velocity.y > 0) {
+                            ball.velocity.y *= -0.6;
+                             ball.position.y = canvas.height - ball.radius;
+                         }
+
+                     }
+
+
+
+
+                    t++;
+                    if(t >=25){
+                        temparr = JSLINQ(balls);
+                        num++;
+                        t = 0;
+                        balls = counter.draw(context , num%10);
+                        drops = drops.concat( initDrops(temparr, balls));
+                    }
+         			$await(Wind.Async.sleep(1000/dif));
+         		}
+         	}));	
+           
+            count().start();
+
+        function initDrops(drops, balls) {
+            var ball , i, temp;
+            temp = drops.Where(function ( item) {
+                for (i= balls.length -1; i>=0; i--){
+                    if (item.position.equals(balls[i].position)) {
+                        return false;
+                    }
+                }
+                return true;
+            }).items;
+            for (i = temp.length - 1; i>=0;i--) {
+                ball = temp[i];
+                ball.velocity.x = randomNum(-300,300);
+                ball.velocity.y = randomNum(300, 500);
+                ball.acceleration.y = 500;
+            }
+            return temp;
+        }
+
+  		function randomColor() {
+           var arrHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]; var strHex = "#";
+           var index;
+           for (var i = 0; i < 6; i++) {
+               index = Math.round(Math.random() * 15);
+               strHex += arrHex[index];
+           }
+           return strHex;
+       }
+
+            function randomNum(min , max) {
+                return Math.random()*(max - min) + min;
+            }
+
+        </script>
+    </body>
+</html>

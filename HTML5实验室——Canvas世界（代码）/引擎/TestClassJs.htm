@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="JS/PE/class.min.js" type="text/javascript"></script>
+    <!--   <script src="JS/class.js" type="text/javascript"></script>
+    <script src="JS/object.js" type="text/javascript"></script>
+    <script src="sstephenson-prototype-bb9d331/src/prototype/lang/function.js" type="text/javascript"></script>-->
+</head>
+<body>
+    <script>
+var Animal =  Class.create({
+    initialize: function(name, sound) {
+      this.name  = name;
+      this.sound = sound;
+    },
+    
+    speak: function() {
+      alert(this.name + " says: " + this.sound + "!");
+  }
+  });
+
+  // subclassing Animal
+  var Snake = Class.create(Animal, {
+      initialize: function ($super, name) {
+          $super(name, 'hissssssssss');
+      },
+
+      speak: function ($super,a,b) {
+          $super();
+          alert(a)
+      }
+  });
+
+  var ringneck = new Snake("Ringneck");
+  ringneck.speak(1,2);
+
+  //-> alerts "Ringneck says: hissssssss!"
+
+  // adding Snake#speak (with a supercall)
+  Snake.addMethods({
+    speak: function($super) {
+      $super();
+      alert("You should probably run. He looks really mad.");
+    }
+  });
+
+  ringneck.speak();
+  //-> alerts "Ringneck says: hissssssss!"
+  //-> alerts "You should probably run. He looks really mad."
+
+  // redefining Animal#speak
+  Animal.addMethods({
+    speak: function() {
+      alert(this.name + 'snarls: ' + this.sound + '!');
+    }
+  });
+
+  ringneck.speak();
+  //-> alerts "Ringneck snarls: hissssssss!"
+  //-> alerts "You should probably run. He looks really mad."
+
+
+  var Snake2 = Class.create(Snake, {
+      initialize: function ($super, name) {
+          $super(name, 'hissssssssss');
+      }
+  });
+
+  var xx = new Snake2("zl");
+  xx.speak();
+    </script>
+</body>
+</html>

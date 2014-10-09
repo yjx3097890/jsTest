@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+    <script src="Mediator.js"></script>
+    
+    <script>
+  
+        mediator = new Mediator();
+        
+        mediator.once("wat:a", function(){ console.log(arguments); });
+        mediator.subscribe("wat", function(){ console.log("wat",arguments); });
+        mediator.trigger("wat:a", 7, "hi", { one: 1 });
+        mediator.trigger("wat:a", 7, "hi", { one: 1 });
+    </script>
+</head>
+<body>
+
+
+
+</body>
+</html>

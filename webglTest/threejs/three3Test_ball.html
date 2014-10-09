@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+	<meta charset="utf-8" />
+		<title>
+			test
+		</title>
+		<script type="text/javascript" src="three.js" ></script>
+		<style>canvas { width: 100%; height: 100% }</style>
+	</head>
+	<body >
+	<div id="canvas3d" style= "width:500px;height:500px"></div>
+	<script type="text/javascript" src="three.js" ></script>
+		<script>
+
+			var camera, scene, renderer, light, sphere,width, height;  //声明全局变量（对象）
+
+			//开启Three.js渲染器
+		function initThree() {
+		   width = document.getElementById('canvas3d').clientWidth;//获取画布「canvas3d」的宽
+		   height = document.getElementById('canvas3d').clientHeight;//获取画布「canvas3d」的高
+		     //声明渲染器对象：WebGLRenderer
+                renderer=new THREE.WebGLRenderer({
+                    antialias:true,//antialias:true/false是否开启反锯齿
+                    precision:"highp",//precision:highp/mediump/lowp着色器精度选择
+                    alpha:true,//alpha:true/false是否可以设置背景色透明
+                    premultipliedAlpha:false,//Premultiplied alpha技术意味着不仅像素的Alpha信息存储在通道里，而且已经扩张到红，蓝，绿通道里，在实际应用中这意味着如果你保存着 #fff8000橙色，而将其透明度设置为50%，那么实际设置保存的是#80803f00.这意味着颜色通道中的任意像素值都不会比Alpha通道中的值来的大
+                    stencil:false,//模板
+                    preserveDrawingBuffer:true,//preserveDrawingBuffer:true/false是否保存绘图缓冲
+                    maxLights:1//maxLights:最大灯光数
+                    });
+		   renderer.setSize(width, height );//指定渲染器的宽高（和画布框大小一致）
+		   document.getElementById('canvas3d').appendChild(renderer.domElement);//追加 【canvas】 元素到 【canvas3d】 元素中。
+		   renderer.setClearColorHex(0x000000, 0.5);//设置canvas背景色(clearColor)
+		}
+		
+			//设置相机
+           function initCamera() { 
+                camera = new THREE.PerspectiveCamera( 45, width / height , 1 , 5000 );//设置透视投影的相机,默认情况下相机的上方向为Y轴，右方向为X轴，Z轴朝外（参数：
+				//视野角：fov 纵横比：aspect 相机离视体积最近的距离：near 相机离视体积最远的距离：far）
+                camera.position.x = 0;//设置相机的位置坐标
+                camera.position.y = 50;//设置相机的位置坐标
+                camera.position.z = 100;//设置相机的位置坐标
+                camera.up.x = 1;//设置相机的上为「x」轴方向
+                camera.up.y = 0;//设置相机的上为「y」轴方向
+                camera.up.z = 0;//设置相机的上为「z」轴方向
+                camera.lookAt( {x:1, y:0, z:0 } );//设置视野的中心坐标 ,This makes the camera look at the vector position in the global space as long as the parent of this camera is the scene or at position (0,0,0).
+            }
+			
+			　//设置场景
+              function initScene() {   
+                scene = new THREE.Scene();
+              }
+			  
+			  /**
+			  OpenGL（WebGL）的三维空间中，存在点光源和聚光灯两种类型。 而且，作为点光源的一种特例还存在平行光源(无线远光源)。另外，作为光源的参数还可以进行 [环境光] 等设置。 作为对应， Three.js中可以设置 [点光源(Point Light)] [聚光灯(Spot Light)] [平行光源(Direction Light)]，和 [环境光(Ambient Light)]。 和OpenGL一样、在一个场景中可以设置多个光源。 基本上，都是环境光和其他几种光源进行组合。 如果不设置环境光，那么光线照射不到的面会变得过于黑暗.
+			  */
+			  function initLight() { 
+                light = new THREE.DirectionalLight(0xff0000, 1.0, 0);//设置平行光源
+				//参数：2. intensity：Light's intensity.Default — 1.0. 3. distance If non-zero, light will attenuate linearly from maximum intensity at light position down to zero at distance.Default — 0.0.
+                light.position.set( -200, 200, 200 );//设置光源向量
+                scene.add(light);// 追加光源到场景
+              }
+			  
+			  //声明一个球模型
+			     function initObject(){  
+                sphere = new THREE.Mesh(
+                     new THREE.SphereGeometry(20,20,20),                //width,height,depth
+                     new THREE.MeshLambertMaterial({color: 0xff0000}) //材质设定
+                );
+                scene.add(sphere);
+                sphere.position.set(0,0,0);
+              }
+			  
+			  　//执行
+              function threeStart() {
+                initThree();
+                initCamera();
+                initScene();   
+                initLight();
+                initObject();
+                renderer.clear(); //Tells the renderer to clear its color, depth or stencil drawing buffer(s).
+									//If no parameters are passed, no buffer will be cleared.
+                renderer.render(scene, camera);
+              }
+			  
+			  threeStart();
+		</script>
+
+	
+	
+	</body>
+</html>

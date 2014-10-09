@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+//各个数字必须为整数
+	function countSort(array){
+		var temp=[],i=0,j=0,val;
+		for(i in array){
+			val=array[i];
+			if(!temp[val]){
+				temp[val]={
+					time:1,
+					val:val
+				};
+			}else{
+				temp[val].time++;
+			}
+		}
+		i=0;
+		for(j in temp){
+			if(temp[j]){
+				while(temp[j].time){
+					array[i++]=temp[j].val;
+					temp[j].time--;
+				}
+			}
+		}
+	}
+	
+	var test=[2,5,3,2,6,7,5,4,9,22];
+	countSort(test);
+	console.log(test);
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<script src="lib/undo.js"></script>
+	<script src="lib/jquery.js"></script>
+	<title>Undo.js demo</title>
+	<style>
+		body { font:62.5% Verdana,Arial,sans-serif; }
+		#text { border: 1px dotted green; }
+	</style>
+	<script>
+	$(function() {
+		var stack = new Undo.Stack(),
+               //封装commond对象
+			EditCommand = Undo.Command.extend({
+				constructor: function(textarea, oldValue, newValue) {
+					this.textarea = textarea;
+					this.oldValue = oldValue;
+					this.newValue = newValue;
+				},
+				execute: function() {
+				},
+				undo: function() {
+					this.textarea.html(this.oldValue);
+				},
+				
+				redo: function() {
+					this.textarea.html(this.newValue);
+				}
+			});
+		stack.changed = function() {
+			stackUI();
+		};
+		
+		var undo = $(".undo"),
+			redo = $(".redo"),
+			dirty = $(".dirty");
+        //改变UI状态
+		function stackUI() {
+			undo.attr("disabled", !stack.canUndo());
+			redo.attr("disabled", !stack.canRedo());
+			dirty.toggle(stack.dirty());
+		}
+		stackUI();
+		
+		$(document).on( "click", ".undo, .redo, .save", function() {
+			var what = $(this).attr("class");
+			stack[what]();
+			return false;
+		});
+		
+		var text = $("#text"),
+			startValue = text.html(),
+			timer;
+
+		$("#text").on("keyup", function() {
+			// a way too simple algorithm in place of single-character undo
+			clearTimeout(timer);
+            //增加一些延迟，避免每次按键都执行
+			timer = setTimeout(function() {
+				var newValue = text.html();
+				// ignore meta key presses
+				if (newValue != startValue) {
+					// this could try and make a diff instead of storing snapshots
+
+					stack.execute(new EditCommand(text, startValue, newValue));
+
+					startValue = newValue;
+				}
+			}, 250);
+		});
+		
+		$(".bold").click(function() {
+			document.execCommand("bold", true);
+			var newValue = text.html(); 
+			stack.execute(new EditCommand(text, startValue, newValue));
+			startValue = newValue;
+		});
+
+        //添加ctrl+z功能, 有些浏览器默认自带文本操作功能
+		$(document).keydown(function(event) {
+			if (!event.ctrlKey || event.keyCode != 90) {
+				return;
+			}
+			event.preventDefault();
+			if (event.shiftKey) {
+				stack.canRedo() && stack.redo();
+			} else {
+				stack.canUndo() && stack.undo();
+			}
+		});
+	});
+	</script>
+</head>
+<body>
+	<button class="undo" href="#">Undo</button>
+	<button class="redo" href="#">Redo</button>
+	<button class="save" href="#">Save<span class="dirty" >*</span></button>
+	<button class="bold">Bold!</button>
+	<div id="text" contenteditable="true">Some content, edit me!</div>
+
+</body></html>

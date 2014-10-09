@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var reg = new RegExp("\\\\");
+	console.log(reg.test("ss\\"));
+	console.log(reg.test("ss"));
+	
+	var regstr = "\"";
+	reg = new RegExp(regstr);
+	console.log(reg.test("ss\""));
+	
+	function getExp(){
+		var re = /[a-z]/;
+		re.name = "exp";
+		return re;
+	}
+	
+	var re1 = getExp();
+	var re2 = getExp();
+	console.log(re1 === re2);
+	re1.name = "reg";
+	console.log(re2.name);
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

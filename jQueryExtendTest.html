@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+	</head>
+    <body >
+        <div id = "dd">dd</div>
+        <script type="text/javascript" src="jquery-1.10.2.js"></script>
+        <script type="text/javascript">
+           
+            $.extend({
+                aaa :"aaa"
+            });
+             var dd = $("#dd").extend({
+                   aa : "aa"
+            });
+            console.log(dd.aa);
+            console.log(dd.aaa);
+            
+            var a = {
+                a: 1,
+                aa: this.a
+            }
+            console.log("a.aa = ",a.aa);
+            a.click = function () {
+                var a = this;
+                    console.log(a);
+                setTimeout(function () {
+                    console.log(a);
+                }, 100)
+            };
+            document.onclick = a.click.call(a);
+            
+            function test() {
+                var i = 0;
+                function intest() {
+                    console.log(this);
+                    i=9;
+                }
+                intest();
+                console.log(i);
+            }
+            test();
+        </script>
+    </body>
+</html>

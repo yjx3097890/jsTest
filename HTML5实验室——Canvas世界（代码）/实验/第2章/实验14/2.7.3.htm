@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+    <canvas id="myCanvas" width="600" height="550" style="border: 15px solid gray; -moz-border-radius-bottomleft: 40px;
+        -moz-border-radius-bottomright: 40px; -webkit-border-bottom-left-radius: 40px;
+        -webkit-border-bottom-right-radius: 40px; -webkit-border-top-left-radius: 40px;
+        -webkit-border-top-right-radius: 40px;">Your browser does not support the canvas element.</canvas>
+    <script src="../../script/Vector2.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var canvas = document.getElementById("myCanvas");
+        var cxt = canvas.getContext("2d");
+        var balls = [];
+        function getRandomNumber(min, max) {
+            return (min + Math.floor(Math.random() * (max - min + 1)))
+        }
+        for (var i = 0; i < 40; i++) {
+            var ball = {
+                position: new Vector2(getRandomNumber(20, 600), getRandomNumber(20, 600)),
+                r: getRandomNumber(6, 120),
+                speed: new Vector2(getRandomNumber(-200, 200), getRandomNumber(-200, 200)),
+                mass: 1,
+                restitution: 1
+            };
+            balls.push(ball);
+        }
+        var filterBalls = [];
+        for (var i = 0; i < balls.length; i++) {
+            var overlapCount = 0;
+            for (var j = i + 1; j < balls.length; j++) {
+                var distance = balls[i].position.distanceTo(balls[j].position);
+                if (distance <= balls[i].r + balls[j].r) {
+                    overlapCount++;
+                }
+            }
+            if (overlapCount === 0) {
+                filterBalls.push(balls[i]);
+            }
+        }
+        balls = filterBalls;
+        cxt.fillStyle = "#030303";
+        cxt.fillRect(0, 0, canvas.width, canvas.height);
+        function init() {
+            cxt.fillStyle = "#fff";
+            for (i in balls) {
+                cxt.beginPath();
+                cxt.arc(balls[i].position.x, balls[i].position.y, balls[i].r, 0, Math.PI * 2, true); cxt.closePath();
+                cxt.fill();
+            }
+        }
+        init();
+        var cyc = 20;
+        var moveAsync = eval(Jscex.compile("async", function () {
+            var tag = 0;
+            while (true) {
+                try {
+                    cxt.fillStyle = "rgba(0, 0, 0, .3)";
+                    cxt.fillRect(0, 0, canvas.width, canvas.height);
+                    cxt.fillStyle = "#fff";
+                    for (var i = 0; i < balls.length; i++) {
+                        for (var j = i + 1; j < balls.length; j++) {
+                            collisionSolver(balls[i], balls[j]);
+                        }
+                    }
+                    for (i in balls) {
+                        cxt.beginPath();
+                        cxt.arc(balls[i].position.x, balls[i].position.y, balls[i].r, 0, Math.PI * 2, true);
+                        cxt.closePath();
+                        cxt.fill();
+                            
+                        if (balls[i].r + balls[i].position.x > canvas.width) {
+                           
+                            balls[i].position.x = canvas.width - balls[i].r;
+                            balls[i].speed.x *= -1;
+                        } if (balls[i].position.x < balls[i].r) {
+                                           
+                            balls[i].position.x = balls[i].r;
+                            balls[i].speed.x *= -1;
+                        } if (balls[i].r + balls[i].position.y > canvas.height) {
+                                     
+                            balls[i].position.y = canvas.height - balls[i].r;
+                            balls[i].speed.y *= -1;
+                        }
+                        if (balls[i].position.y < balls[i].r) {
+                         
+                            balls[i].position.y = balls[i].r;
+                            balls[i].speed.y *= -1;
+                        }
+                        balls[i].position.x += balls[i].speed.x * cyc / 1000;
+                        balls[i].position.y += balls[i].speed.y * cyc / 1000;
+                    }
+                } catch (e) { alert(e); }
+                $await(Jscex.Async.sleep(cyc));
+            }
+        }))
+
+
+        function collisionSolver(bodyA, bodyB) {
+            bodyA.mass = bodyA.r * 2;
+            bodyB.mass = bodyB.r * 2;
+            var vA = bodyA.speed;
+            var vB = bodyB.speed;
+
+     
+            var l = bodyA.r + bodyB.r;
+     
+            var distSqr = bodyA.position.distanceToSquared(bodyB.position);
+
+            var isTouching = distSqr <= l * l ? true : false;
+      
+            var normal = Vector2.sub(bodyB.position, bodyA.position).normalize();
+            var ratio = bodyA.r / l;
+            var contactPoint = new Vector2();
+            contactPoint.x = bodyA.position.x + (bodyB.position.x - bodyA.position.x) * ratio;
+            contactPoint.y = bodyA.position.y + (bodyB.position.y - bodyA.position.y) * ratio;
+
+            var rA = Vector2.sub(contactPoint, bodyA.position);
+            var rB = Vector2.sub(contactPoint, bodyB.position);
+            var vrn = Vector2.sub(vA, vB).dot(normal);
+            if (isTouching && vrn > 0) {
+                var normalMass = 1 / (1 / bodyA.mass + 1 / bodyB.mass);
+                var restitution = (bodyA.restitution + bodyB.restitution) / 2;
+                var normalImpulse = -normalMass * vrn * (1 + restitution);
+                bodyA.speed.x += normalImpulse * normal.x / bodyA.mass;
+                bodyA.speed.y += normalImpulse * normal.y / bodyA.mass;
+                bodyB.speed.x -= normalImpulse * normal.x / bodyB.mass;
+                bodyB.speed.y -= normalImpulse * normal.y / bodyB.mass;
+            }
+
+        }
+        </script>
+    <input class="css3btn" value="运行" onclick="moveAsync().start();" type="button" />
+</body>
+</html>

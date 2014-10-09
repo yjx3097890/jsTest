@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+WWW
+</title>
+</head>
+<body>
+<div>
+xxxx
+</div>
+<button id="refresh" value="cc" class="a b c d" data-yjx="yjx">刷新</button>
+</body>
+<script>
+alert(document.implementation.hasFeature("Core",3.0));
+alert(document.documentElement.innerHTML);
+var text = document.body.firstElementChild.childNodes[0];
+console.log(text.data);
+text.data = "<div>yanjixian</div>";
+alert(document.body.firstElementChild.innerHTML);
+alert(document.body.firstElementChild.outerHTML);
+document.body.firstElementChild.innerHTML="<h2>\"yjx</h2>";
+alert(document.body.firstElementChild.innerHTML);
+document.write(eval("console.log('Hello world');2+2;console.log('a');'z'"));
+
+var bt = document.querySelector("button");
+console.log(bt.className);
+
+console.log(bt.classList.length);
+
+bt.focus();
+console.log(document.hasFocus());
+console.log(document.activeElement.nodeName);
+
+console.log(bt.dataset.yjx);
+console.log(document.charset);
+console.log(document.defaultCharset);
+</script>
+</html>

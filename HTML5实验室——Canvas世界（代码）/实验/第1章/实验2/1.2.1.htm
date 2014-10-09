@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+   
+    <canvas id="myCanvas" width="847" height="440" style="background-color:#000000">
+Your browser does not support the canvas element.
+</canvas>
+
+<script>
+    var canvas = document.getElementById("myCanvas");
+    var cxt = canvas.getContext("2d");
+    var r = 10;
+    var balls = [];
+    function initBall() {
+        var parentBall = {
+            position: {x:200,y:200},
+            r: r,
+            color: "#fff"
+        };
+        var firstBall= {
+            position: { x: 550, y: 200 },
+            r: r,
+            color: randomColor()
+        };
+        for (var j = 1; j < 5; j++) {
+            for (var k = 0; k < j + 1; k++) {
+                var ball = {
+                    position: { x: firstBall.position.x + j * Math.sqrt(3) * r, y: firstBall.position.y - j * r + 2 * k * r },
+                    r: r,
+                    color: randomColor()
+                };
+                balls.push(ball);
+            }
+        }
+        balls.push(firstBall);
+        balls.push(parentBall);
+
+    } 
+    function draw() {
+        for (i in balls) {
+            cxt.fillStyle = balls[i].color;
+            cxt.beginPath();
+            cxt.arc(balls[i].position.x, balls[i].position.y, balls[i].r, 0, Math.PI * 2, true);
+            cxt.closePath();
+            cxt.fill();
+        }
+    }
+    initBall();
+    draw();
+    function randomColor() {
+        var arrHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]; var strHex = "#";
+        var index;
+        for (var i = 0; i < 6; i++) {
+            index = Math.round(Math.random() * 15);
+            strHex += arrHex[index];
+        }
+        return strHex;
+    } 
+    </script>
+</body>
+</html>
+

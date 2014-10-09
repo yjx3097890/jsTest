@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+var data;
+//var data = [{aa:"aa",ss:"ss"},"ss"];
+var book = {
+	title:"huangpian",
+	authors:["yjx","qq"],
+	data:data,
+	qq:null
+};
+
+var str = JSON.stringify(book,function(k,v){if(k==="title") return  "laji";else return v;},2);
+console.log(book);
+console.log(str);
+
+var book1  = JSON.parse(str);
+console.log(book1);
+</script>
+
+</body>
+</html>

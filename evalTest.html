@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var jsstr = "var u = 'hello';console.log(u);";
+	eval(jsstr);
+	Function("console.log(u);")();
+	console.log(typeof u);
+	console.log(delete u);
+	console.log(typeof u);
+	Function(jsstr)();
+	console.log(typeof u);
+	
+	console.log(parseInt("012ke23",8));
+	console.log(parseInt("011",8));
+	console.log(parseInt("011"));
+	console.log(Number("011"));
+	console.log(Number("011ddd"));
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

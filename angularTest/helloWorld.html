@@ -1,0 +1,21 @@
+<html >
+<head>
+  <script src="angular/angular.js"></script>
+  <script >
+	angular.module("myapp", [])
+    .controller("HelloController", function($scope) {
+        $scope.greeting = {};
+        $scope.greeting.text = "World, AngularJS";
+    });
+
+  </script>
+</head>
+<body ng-app="myapp">
+  <div ng-controller='HelloController'>
+     <input ng-model='greeting.text'>
+
+    <p>{{greeting.text}}, World</p>
+  </div>
+
+  </body>
+</html>

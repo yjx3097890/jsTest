@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+</head>
+<body>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+    <script src="../../script/Vector2.js" type="text/javascript"></script>
+<canvas
+id="myCanvas" width="600" height="500">Your browser does not support the canvas element. </canvas>
+  
+<script
+type="text/javascript">
+
+    var canvas = document.getElementById("myCanvas");
+    var cxt = canvas.getContext("2d");
+
+    function drawRegular(borderCount, position, radius) {
+       
+        if (borderCount < 3) return;
+        var intervalAngle = 360 / borderCount;
+        var firstPoint = new Vector2(position.x, position.y - radius);
+        cxt.beginPath();
+        cxt.moveTo(firstPoint.x, firstPoint.y);
+        for (var i = 0; i < borderCount; i++) {
+            firstPoint.rotateSelf(position, intervalAngle);
+            cxt.lineTo(firstPoint.x, firstPoint.y);
+        }
+        cxt.stroke();
+
+    }
+
+
+    var beginX = 20, cyc = 1000, borderCount = 3;
+    var drawAsync = eval(Jscex.compile("async", function () {
+        while (true) {
+            beginX += 80;
+            drawRegular(borderCount, new Vector2(beginX, 100), 40);
+            borderCount++;
+            $await(Jscex.Async.sleep(cyc));
+        }
+    }))
+
+    drawAsync().start();
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+</head>
+<body>
+<canvas id="myCanvas"  width="500px" height="350px"></canvas>
+   <script>
+       var c = document.getElementById("myCanvas");
+       var cxt = c.getContext("2d");
+       
+       var angel = 2 * Math.PI;
+       var step = Math.PI / 10;
+       function draw() {
+           cxt.clearRect(0, 0, 1000, 1000);
+           for (var i = 0; i < 600; i += 10) {
+               cxt.fillStyle = randomColor();
+               cxt.beginPath();
+               angel -= step;
+               cxt.arc(i, 150 + 100 * Math.cos(angel), 7, 0, Math.PI * 2, true);
+               cxt.closePath();
+               cxt.fill();
+           }
+       }
+       var step2 = 0.2;
+       var waveAsync = eval(Jscex.compile("async", function () {
+           while (true) {
+               angel = 2 * Math.PI;
+               angel -= step2;
+               step2 += 0.1;
+               $await(Jscex.Async.sleep(100))
+               draw();
+           }
+       }))
+       waveAsync().start();
+       function randomColor() {
+           var arrHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]; var strHex = "#";
+           var index;
+           for (var i = 0; i < 6; i++) {
+               index = Math.round(Math.random() * 15);
+               strHex += arrHex[index];
+           }
+           return strHex;
+       } 
+    </script>
+</body>
+</html>

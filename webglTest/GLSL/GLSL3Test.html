@@ -1,0 +1,272 @@
+﻿<!DOCTYPE HTML> 
+<html lang="en"> 
+<head>
+<title>fire</title>
+
+	<style type="text/css">
+			body {
+				font-family: Monospace;
+				background-color: #FFF;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+
+<meta charset="utf-8"> 
+	<script type="text/javascript" src="three.js" ></script>
+<script id="vertexShader" type="x-shader/x-vertex">  
+  
+
+			void main() {
+
+				gl_Position = vec4( position, 1.0 );
+
+			}        
+</script>
+
+<script id="fragmentShader" type="x-shader/x-fragment">
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+// Paremeters --------------------------
+
+const float height = 4.0;
+const float size = 100.0;
+const float noiseSize = 8.0;
+const float noiseStrength = 0.25;
+const int noiseDepth = 3;
+const float speed = 4.0;
+
+const vec3 color = vec3(2.5, 2.0, 1.5);
+
+const bool followMouse = true;
+const vec2 defaultPosition = vec2(0.5, 0.2);
+
+//--------------------------------------
+
+
+uniform float time;
+uniform vec2 mouse;
+uniform vec2 resolution;
+
+// Perlin noise source code from Stefan Gustavson
+// https://github.com/ashima/webgl-noise/blob/master/src/classicnoise2D.glsl
+
+vec4 mod289(vec4 x)
+{
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 permute(vec4 x)
+{
+  return mod289(((x*34.0)+1.0)*x);
+}
+
+vec4 taylorInvSqrt(vec4 r)
+{
+  return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+vec2 fade(vec2 t) {
+  return t*t*t*(t*(t*6.0-15.0)+10.0);
+}
+
+// Classic Perlin noise
+float cnoise(vec2 P)
+{
+  vec4 Pi = floor(P.xyxy) + vec4(0.0, 0.0, 1.0, 1.0);
+  vec4 Pf = fract(P.xyxy) - vec4(0.0, 0.0, 1.0, 1.0);
+  Pi = mod289(Pi); // To avoid truncation effects in permutation
+  vec4 ix = Pi.xzxz;
+  vec4 iy = Pi.yyww;
+  vec4 fx = Pf.xzxz;
+  vec4 fy = Pf.yyww;
+
+  vec4 i = permute(permute(ix) + iy);
+
+  vec4 gx = fract(i * (1.0 / 41.0)) * 2.0 - 1.0 ;
+  vec4 gy = abs(gx) - 0.5 ;
+  vec4 tx = floor(gx + 0.5);
+  gx = gx - tx;
+
+  vec2 g00 = vec2(gx.x,gy.x);
+  vec2 g10 = vec2(gx.y,gy.y);
+  vec2 g01 = vec2(gx.z,gy.z);
+  vec2 g11 = vec2(gx.w,gy.w);
+
+  vec4 norm = taylorInvSqrt(vec4(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11)));
+  g00 *= norm.x;
+  g01 *= norm.y;
+  g10 *= norm.z;
+  g11 *= norm.w;
+
+  float n00 = dot(g00, vec2(fx.x, fy.x));
+  float n10 = dot(g10, vec2(fx.y, fy.y));
+  float n01 = dot(g01, vec2(fx.z, fy.z));
+  float n11 = dot(g11, vec2(fx.w, fy.w));
+
+  vec2 fade_xy = fade(Pf.xy);
+  vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
+  float n_xy = mix(n_x.x, n_x.y, fade_xy.y);
+  return 2.3 * n_xy;
+}
+
+
+void main( void ) {
+	vec2 position = (followMouse ? mouse : defaultPosition) * resolution.xy;
+	
+	// Compute flame area
+	vec2 coord;
+	if (gl_FragCoord.y > position.y) {
+		coord = vec2(gl_FragCoord.x, position.y + (gl_FragCoord.y - position.y) / height);
+	} else {
+		coord = gl_FragCoord.xy;
+	}
+	float dist = distance(position, coord) / resolution.y;
+	
+	// Compute flame noise
+	vec2 noisePosition = noiseSize * (gl_FragCoord.xy - position) / resolution.y - vec2(0.0, speed * time);
+	float noise = 0.0;
+	for (int i = 0; i < noiseDepth; i++) {
+		noise += cnoise(noisePosition * pow(2.0, float(i)));
+	}
+	
+	gl_FragColor = vec4(mix(-size * dist, noise, noiseStrength) + color, 1.0);
+}
+
+</script>
+
+<script type="text/javascript">
+
+            var container;
+
+			var camera, scene, renderer;
+
+			var uniforms, material, mesh;
+
+			var mouseX = 0, mouseY = 0,
+			oPOnThree;
+
+	
+			var time, startTime = + new Date();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild(container);
+
+				camera = new THREE.Camera();
+				camera.position.z = 0;
+
+				scene = new THREE.Scene();
+
+				uniforms = {
+					time: { type: "f", value: 1.0 },
+                    mouse: {type: "v2", value: new THREE.Vector2(0.5,0.2)},
+                    resolution: {type: "v2", value: new THREE.Vector2()}
+				};
+
+				material = new THREE.ShaderMaterial( {
+
+					uniforms: uniforms,
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+
+				} );
+
+				
+				/**
+				function PlaneGeometry:
+					width — Width along the X axis.
+					height — Height along the Y axis.
+					widthSegments — Optional. Default is 1. 
+					heightSegments — Optional. Default is 1.
+				*/
+                var pWidth = 2;
+                var pHeight = 2;
+				mesh = new THREE.Mesh( new THREE.PlaneGeometry(pWidth, pHeight), material );
+				scene.add( mesh );
+           
+                
+				renderer = new THREE.WebGLRenderer();
+				container.appendChild( renderer.domElement );
+                
+				onWindowResize();
+
+				window.addEventListener( 'resize', onWindowResize, false);
+                document.addEventListener('mousemove',onMouseMove, false);
+
+			}
+
+			function onWindowResize( event ) {
+
+				uniforms.resolution.value.x = window.innerWidth;
+				uniforms.resolution.value.y = window.innerHeight;
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+            
+            var clientXLast, clientYLast;
+            function onMouseMove( event ) {
+                
+                var clientX = event.clientX;
+                var clientY = event.clientY;
+                
+                if(clientXLast == mouseX && clientYLast == mouseY ) {
+                   return; 
+                }
+                
+				clientXLast = clientX;
+                clientYLast = clientY;
+                
+                mouseX = clientX / window.innerWidth;
+				mouseY = 1 - clientY / window.innerHeight;
+                
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				
+
+			}
+    
+			function render() {
+                
+                time = new Date() - startTime;
+                
+				uniforms.mouse.value.x = mouseX;
+				uniforms.mouse.value.y = mouseY;
+                
+				uniforms.time.value = time/1000;
+
+				renderer.render( scene, camera );
+
+			}
+                
+                //threejs世界坐标变到浏览器坐标
+            THREE.Vector3.prototype.getLayerPosition = function(  camera, container ){
+
+                var pos = this.clone(), 
+
+                projector = new THREE.Projector();
+
+                container = container || document.documentElement;
+
+                projector.projectVector( pos, camera );
+ 
+                return  { x : (1+pos.x)*container.clientWidth/2, y : (1-pos.y)*container.clientHeight/2};
+
+            }
+</script>
+
+</head>
+<body  onload="init();animate();">
+ 
+ 
+</body>
+
+</html>

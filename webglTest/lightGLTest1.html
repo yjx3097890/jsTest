@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title></title>
+        <script type="text/javascript" src="lightgl.js"></script>
+	</head>
+    <body>
+    
+    	<script type="text/javascript">
+            var angle = 0,
+                 gl = GL.create(),
+                 mesh = GL.Mesh.sphere({detail : 100}),
+                 shader = new GL.Shader('\
+                  void main() {\
+                    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\
+                  }\
+                ', '\
+                  void main() {\
+                    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\
+                  }\
+                ');
+
+            gl.onupdate = function(seconds) {
+              angle += 45 * seconds;
+            };
+
+            gl.ondraw = function() {
+              gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.loadIdentity();
+              gl.translate(0, 0, -5);
+              gl.rotate(30, 1, 0, 0);
+             gl.rotate(angle, 0, 1, 0);
+
+              shader.draw(mesh);
+            };
+
+            gl.fullscreen({ paddingLeft: 250, paddingBottom: 60 });
+            gl.animate();
+       
+
+        </script>
+    </body>
+</html>

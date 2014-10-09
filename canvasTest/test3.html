@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>arc</title>
+       <script type="text/javascript" src="wind-all-0.7.3.js"></script>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3"></canvas>
+        <script type="text/javascript">
+            var canvas, context;
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            
+            var r = 100,
+            center = {x:400, y: 300},
+            dif = 10000,
+            i = 0,
+            alpha = 0,
+            length = 0;
+            
+            var draw = eval(Wind.compile("async",function() {
+            context.beginPath();
+            context.strokeStyle = "#ff0000";
+            context.moveTo(center.x ,center.y - r);
+            for(i=0; i< dif; i++) {
+                var pointS = {x: center.x + r * Math.sin(alpha), y: center.y - r * Math.cos(alpha)};
+                alpha += 2 * Math.PI / dif;
+                context.lineTo(center.x + r * Math.sin(alpha), center.y - r * Math.cos(alpha));
+                var pointE = {x: center.x + r * Math.sin(alpha), y: center.y - r * Math.cos(alpha)};
+                length += distance(pointS, pointE);
+                $await(Wind.Async.sleep(1));
+                context.stroke();
+            }
+            
+            alert("PI = " + length / r / 2);
+            }));
+            
+            draw().start();
+            
+            
+            
+            function distance(pointA, pointB) {
+                return Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
+            }
+            
+        </script>
+    </body>
+</html>

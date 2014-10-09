@@ -1,0 +1,33 @@
+<html ng-app="app">
+	<head>
+		<script type="text/javascript" src="angular/angular.js"></script>
+		<script type="text/javascript">
+			var app = angular.module('app', []);
+			app.directive('myFocus', function () {
+				return {
+					link: function (scope, element, attres, controllers) {
+						element[0].innerHTML=attres.myFocus;
+						element[0].focus();
+						
+					}
+				}
+			});
+			app.controller('AppControler', function ($scope) {
+				$scope.message = {text : 'nothing clicked'};
+				
+				$scope.unfocused = function () {
+					$scope.message.text = 'unfocused btn clicked';
+				};
+				
+				$scope.focused = function () {
+					$scope.message.text = 'focused btn clicked';
+				};
+			});
+		</script>
+	</head>	
+	<body ng-controller='AppControler'>
+		<button ng-click='unfocused()'>not  focused</button>
+		<button my-focus='aa' ng-click='focused()'>focused! </button>
+		<div>{{message.text}}</div>
+	</body>
+</html>

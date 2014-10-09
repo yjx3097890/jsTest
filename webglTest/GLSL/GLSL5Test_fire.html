@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>three.js webgl - draggable cubes</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                font-family: Monospace;
+                background-color: #FFFFFF;
+                margin: 0px;
+                overflow: hidden;
+            }
+        </style>
+        
+        	<script id="fragmentShader" type="x-shader/x-fragment">
+
+            #ifdef GL_ES
+            precision mediump float;
+            #endif
+
+            // Paremeters --------------------------
+
+            const float height = 5.0;
+            const float size = 10.0;
+            const float noiseSize = 2.0;
+            const float noiseStrength = 0.15;
+            const int noiseDepth = 3;
+            const float speed = 3.0;
+
+            const vec3 color = vec3(2.5, 2.0, 1.5);
+
+            const vec2 defaultPosition = vec2(0.0, -0.8);
+
+            //--------------------------------------
+
+
+            uniform float time;
+        
+            uniform vec2 resolution;
+
+            varying vec2 vUv;
+
+            // Perlin noise source code from Stefan Gustavson
+            // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise2D.glsl
+
+            vec4 mod289(vec4 x)
+            {
+              return x - floor(x * (1.0 / 289.0)) * 289.0;
+            }
+
+            vec4 permute(vec4 x)
+            {
+              return mod289(((x*34.0)+1.0)*x);
+            }
+
+            vec4 taylorInvSqrt(vec4 r)
+            {
+              return 1.79284291400159 - 0.85373472095314 * r;
+            }
+
+            vec2 fade(vec2 t) {
+              return t*t*t*(t*(t*6.0-15.0)+10.0);
+            }
+
+            // Classic Perlin noise   返回值在【-1,1】
+            float cnoise(vec2 P)
+            {
+              vec4 Pi = floor(P.xyxy) + vec4(0.0, 0.0, 1.0, 1.0);
+              vec4 Pf = fract(P.xyxy) - vec4(0.0, 0.0, 1.0, 1.0);
+              Pi = mod289(Pi); // To avoid truncation effects in permutation
+              vec4 ix = Pi.xzxz;
+              vec4 iy = Pi.yyww;
+              vec4 fx = Pf.xzxz;
+              vec4 fy = Pf.yyww;
+
+              vec4 i = permute(permute(ix) + iy);
+
+              vec4 gx = fract(i * (1.0 / 41.0)) * 2.0 - 1.0 ;
+              vec4 gy = abs(gx) - 0.5 ;
+              vec4 tx = floor(gx + 0.5);
+              gx = gx - tx;
+
+              vec2 g00 = vec2(gx.x,gy.x);
+              vec2 g10 = vec2(gx.y,gy.y);
+              vec2 g01 = vec2(gx.z,gy.z);
+              vec2 g11 = vec2(gx.w,gy.w);
+
+              vec4 norm = taylorInvSqrt(vec4(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11)));
+              g00 *= norm.x;
+              g01 *= norm.y;
+              g10 *= norm.z;
+              g11 *= norm.w;
+
+              float n00 = dot(g00, vec2(fx.x, fy.x));
+              float n10 = dot(g10, vec2(fx.y, fy.y));
+              float n01 = dot(g01, vec2(fx.z, fy.z));
+              float n11 = dot(g11, vec2(fx.w, fy.w));
+
+              vec2 fade_xy = fade(Pf.xy);
+              vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
+              float n_xy = mix(n_x.x, n_x.y, fade_xy.y);
+              return 2.3 * n_xy;
+            }
+
+             float mynoise(vec2 pos)
+{
+	return fract(1111. * sin(111. * dot(pos, vec2(2222., 22.))));	
+}
+            
+            void main( void ) {
+                vec2 position = defaultPosition;
+                
+                vec2 fragment =  -1.0 + 2.0 * vUv;
+                // Compute flame area
+                vec2 coord;
+                if (fragment.y > position.y) {
+                    coord = vec2(fragment.x, position.y + (fragment.y - position.y) / height);
+                } else {
+                    coord = fragment.xy;
+                }
+                float dist = distance(position, coord);
+                
+                // Compute flame noise
+                vec2 noisePosition = noiseSize * (fragment.xy - position) - vec2(0.0, speed * time);
+                float noise = 0.0;
+               for (int i = 0; i < noiseDepth; i++) {
+                    noise += cnoise(noisePosition * pow(2.0, float(i)));
+               }
+                //noise值在【-2.0,2.0】
+     /**           if(dist<=-0.5){
+                    gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+                }else if(dist>=1.0){
+                    gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+                }else{
+                    gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+                }
+                
+                
+                 if(mix(-size * dist, noise, noiseStrength)>=-2.0){
+                    gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+                }
+        */        
+               gl_FragColor = vec4(mix(-size * dist, noise, noiseStrength) + color, mix(-size * dist, noise, noiseStrength) + 2.5);
+                }
+
+		</script>
+        <script id="vertexShader" type="x-shader/x-vertex">
+
+			varying vec2 vUv;
+
+			void main()
+			{
+				vUv = uv;
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_Position = projectionMatrix * mvPosition;
+			}
+
+		</script>
+    </head>
+    <body>
+        <script src="three.js"></script>
+            
+            
+        <script>
+            //container是指页面放置这个webGL的一个层
+            var container;
+            //camera是指场景相机 controls是指控制器，比如一般的鼠标视角控制等  scene是场景，就好像一个大的舞台 
+            //projector是可能指屏幕和场景转换工具 renderer是指场景渲染，能把场景呈现到浏览器里
+            var camera, scene,renderer;
+            // plane是一个水平面网格，当选中一个物体时，可以通过这个水平面，看到和它在同一平面内的其他物理
+            var  plane, material, uniforms;
+            //mouse，鼠标所对应的二维向量  offset 是指三维偏移向量  
+            var mouse = new THREE.Vector2(),
+             clock = new THREE.Clock(),
+             SELECTED;
+                
+            //初始化整个场景
+            init();
+            //开始每秒最大60帧的渲染
+            animate();
+    
+            function init() {
+                //创建一个放置webGL的层
+                container = document.createElement( 'div' );
+                //把上面的层放到body里
+                document.body.appendChild( container );
+                //创建一个透视相机 可视角度70度 浏览器的全屏的宽高 水平视锥 最近1 最远10000 
+                camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+                //相机的位置z正半轴3000
+                camera.position.z = 3000;
+              
+               
+                //新建一个场景
+                scene = new THREE.Scene();
+    
+                uniforms = {
+					time: { type: "f", value: 1.0 },
+                    resolution: {type: "v2", value: new THREE.Vector2()}
+				};
+
+				material = new THREE.ShaderMaterial( {
+					uniforms: uniforms,
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+
+				} );
+              
+              
+              
+                //创建一个长2000宽2000，8*8的网格对象并加上一种基本材质
+                plane = new THREE.Mesh( new THREE.PlaneGeometry( 500, 500 ), material);
+           //     plane.material.ambient = plane.material.color;    
+               //平面对象是否可见
+                plane.visible = true;
+                
+                plane.position.x = 1000;
+                //把网格对象加到场景中
+                scene.add( plane );
+                    
+               
+                //创建一个抗锯齿的webgl渲染器
+                renderer = new THREE.WebGLRenderer( { antialias: true } );
+                //设置渲染的范围
+                renderer.setSize( window.innerWidth, window.innerHeight );
+               
+                //把渲染成的所有页面标签加入到webgl层中
+                container.appendChild( renderer.domElement );
+                    
+                    onWindowResize();
+              
+                //加入鼠标拖动对象的一系列监听事件
+              renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
+                renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+                renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+    
+                //加入窗口改变大小时的监听事件
+                window.addEventListener( 'resize', onWindowResize, false );
+                
+            }
+            
+            //窗口改变大小时的触发事件
+            function onWindowResize() {
+                //改变相机的aspect属性为当前窗口的宽高
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新相机的投影矩阵
+                camera.updateProjectionMatrix();
+                //
+                uniforms.resolution.value.x = window.innerWidth;
+				uniforms.resolution.value.y = window.innerHeight;
+                //重新设置场景宽高
+                renderer.setSize( window.innerWidth, window.innerHeight );
+    
+            }
+                
+            //当鼠标移动时触发的事件
+            function onDocumentMouseMove( event ) {
+            
+                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    
+                //新建一个三维变换半单位向量 假设z方向就是0.5,这样我左右移的时候，还会有前后移的效果
+                var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
+                    
+                     var projector = new THREE.Projector();
+                //屏幕和场景转换工具根据照相机，把这个向量从屏幕转化为场景中的向量
+                projector.unprojectVector( vector, camera );
+                
+                //vector.sub( camera.position ).normalize()变换过后的向量vector减去相机的位置向量后标准化
+                //新建一条从相机的位置到vector向量的一道光线
+                var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+    
+                //是否有东西被选中
+                if ( SELECTED ) {
+                        var intersect = raycaster.intersectObject(plane);
+                  
+                        SELECTED.object.position.copy( intersect[0].point );
+                    
+                    return;
+    
+                }
+    
+    
+            }
+            //当鼠标按下时触发的事件
+            function onDocumentMouseDown( event ) {
+                //阻止本来的默认事件，比如浏览器的默认右键事件是弹出浏览器的选项
+                event.preventDefault();
+    
+                var projector = new THREE.Projector();
+                var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
+                projector.unprojectVector( vector, camera );
+    
+                var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+    
+                var intersect = raycaster.intersectObject( plane );
+                console.log(intersect);
+                if ( intersect.length > 0 ) {
+                    
+                    //把选中的对象放到全局变量SELECTED中
+                    SELECTED = intersect[ 0 ]; 
+                   
+                    //改变鼠标的样式
+                    container.style.cursor = 'move';
+                }
+    
+            }
+    
+            function onDocumentMouseUp( event ) {
+    
+                event.preventDefault();
+   
+              
+                //选中物体置空
+                SELECTED = null;
+    
+                
+                //改变鼠标的样式
+                container.style.cursor = 'auto';
+    
+            }
+    
+            //每秒最大60帧的渲染，一直在循环
+            function animate() {
+                //循环本身
+                requestAnimationFrame( animate );
+                //渲染场景
+                render();
+                
+            }
+    
+            function render() {
+                var delta = clock.getDelta();
+               	uniforms.time.value += delta;  
+                //渲染场景和相机
+                renderer.render( scene, camera );
+            }
+        </script>
+    </body>
+</html>

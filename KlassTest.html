@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var klass = function (parent, child) {
+		var Constr, F, o;
+		
+		//先调用父构造函数，再调用自己
+		Constr = function () {
+			if (Constr._super && Constr._super.hasOwnProperty("_constructor")) {
+				Constr._super._constructor.apply(this, arguments);
+			}
+			if (Constr.prototype.hasOwnProperty("_constructor")){
+				Constr.prototype._constructor.apply(this, arguments);
+			}
+		}
+		//继承
+		parent = parent || Object;
+		F = function () {};
+		F.prototype = parent.prototype;
+		Constr.prototype = new F();
+		Constr.prototype.constructor = Constr;
+		Constr._super = parent.prototype;
+		//把公用方法附给prototype
+		for (o in child) {
+			if (child.hasOwnProperty(o)) {
+				Constr.prototype[o] = child[o];
+			}
+		}
+		//返回构造函数
+		return Constr;
+	}
+	
+	var SuperMan = klass(null, {
+		_constructor: function (what) {
+		console.log("SuperMan's constructor");
+		this.name = what;
+		},
+		getName: function () {
+		return this.name;
+		}
+	});
+	
+	var Man = klass(SuperMan, {
+		_constructor: function (what) {
+		console.log("Man's constructor");
+		},
+		getName: function () {
+		var name = Man._super.getName.call(this);
+		return "I am " + name;
+		}
+	});
+	
+	var clark = new Man('Clark Kent');
+	console.log(clark.getName()); // "I am Clark Kent"
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

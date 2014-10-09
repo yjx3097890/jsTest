@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<!--
+	Object.create(prototype, descriptors)
+参数
+prototype
+必需。 要用作原型的对象。 可为 null。
+
+descriptors
+可选。 包含一个或多个属性描述符的 JavaScript 对象。
+
+数据属性 是可获取和设置值的属性。 数据属性描述符包含一个 value 特性以及 writable、enumerable 和 configurable 特性。 如果未指定最后三个特性，则它们默认为 false。 只要检索或设置该值，访问器属性 就会调用用户提供的函数。 访问器属性描述符包含 set 特性和/或 get 特性。
+-->
+<script type="text/javascript">
+	var parent = {
+		name: "yjx"
+	};
+	
+	var son = Object.create(parent, { name: {value: "qq"},
+	age: {value: 11} });
+	
+	console.log(son.name); 
+	console.log(son.age); 
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

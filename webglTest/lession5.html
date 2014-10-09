@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>lession1</title>
+<script type="text/javascript" src="Oak3D_v_0_5.js"></script>
+
+<!--着色器的代码 ,GLSL语言-->
+<script id="shader-fs" type="x-shader/x-fragment">
+ 
+    precision mediump float;  //告诉显卡我们需要精确到浮点值的数字运算
+	 varying vec2 vTextureCoord;
+ 
+    uniform sampler2D uSampler;
+ 
+    void main(void) {
+     gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));//指定绘制物体的色
+    }
+</script>
+ <!--顶点着色器，让显卡对顶点做任何想要做的事 -->
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+	  attribute vec2 aTextureCoord;
+ 
+    uniform mat4 uMVMatrix;  //uniform变量非常有用，因为你可以在着色器之外访问它们，甚至在它们的容器program之外
+    uniform mat4 uPMatrix;
+	//为每个顶点调用着色器，并且把顶点作为aVertecPosition传递给着色器代码。
+	//顶点位置与模型视图矩阵和投影矩阵相乘，然后把最终顶点位置作为结果输出。
+	 varying vec2 vTextureCoord;
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		vTextureCoord = aTextureCoord;
+    }
+</script>
+
+</head>
+<body onload="webglStart();">
+<canvas id="canvas" style="" width="500" height = "500"></canvas>
+
+<script type="text/javascript">
+		var cubeVertexPositionBuffer,
+			cubeVertexTextureCoordBuffer,
+			gl, 
+			mvMatrix,  //模型视图矩阵
+			pMatrix,   //投影矩阵
+			shaderProgram,
+			cubeVertexIndexBuffer,
+			neheTexture,  //储存纹理
+			xRot = 0,
+	        yRot = 0,
+             zRot = 0;
+ 
+		
+	    function webglStart() {
+			var canvas = document.getElementById("canvas");
+			initGL(canvas);
+			initShaders();
+			initBuffers();
+			initTexture();
+	 
+			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			gl.enable(gl.DEPTH_TEST);
+			
+			tick();
+		}
+		function initGL(canvas) {
+			try {
+				gl = canvas.getContext("experimental-webgl");
+				gl.viewportWidth = canvas.width;
+				gl.viewportHeight = canvas.height;
+			} catch (e) {
+				console.log(e);
+			}
+			if (!gl) {
+				alert("Could not initialise WebGL, sorry :-(");
+			}
+		}
+	
+	function initShaders() {
+        var fragmentShader = getShader(gl, "shader-fs"); //片元着色器
+        var vertexShader = getShader(gl, "shader-vs");  //顶点着色器
+ 
+        shaderProgram = gl.createProgram();    //Program是系统中原生于WebGL里的二进制码，你可以把它看作是一种在显卡中运行指定指令的方法。
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+		//把若干着色器组合捆绑到一个program中，每个着色器都可以看做一段program中的代码。
+		//特别是每个program可以储存一个片元着色器和一个顶点着色器。    
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+ 
+        gl.useProgram(shaderProgram);
+		
+		shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+        gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);  //告诉WebGL我们会用一个数组来为属性赋值。
+		
+		  shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+        gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+		
+		 shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix"); //提取出了uPMatrix的地址
+        shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+		shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+	}
+	
+	/**HTML页面中寻找一个id能够对应传递进去的参数的元素，取出它的内容，建立一个片元着色器或一个顶点着色器，然后传递到WebGL端编译成可以在显卡中运行的形式。代码会再来处理发生的错误。
+	*/
+	 function getShader(gl, id) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) {
+            return null;
+        }
+ 
+        var str = "";
+        var k = shaderScript.firstChild;
+        while (k) {
+            if (k.nodeType == 3) {
+                str += k.textContent;
+            }
+            k = k.nextSibling;
+        }
+ 
+        var shader;
+        if (shaderScript.type == "x-shader/x-fragment") {
+            shader = gl.createShader(gl.FRAGMENT_SHADER);
+        } else if (shaderScript.type == "x-shader/x-vertex") {
+            shader = gl.createShader(gl.VERTEX_SHADER);
+        } else {
+            return null;
+        }
+ 
+        gl.shaderSource(shader, str);
+        gl.compileShader(shader);
+ 
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(shader));
+            return null;
+        }
+ 
+        return shader;
+    }
+		
+	  function initTexture() {
+	  //createTexture:创建纹理
+        neheTexture = gl.createTexture();
+        neheTexture.image = new Image();
+        neheTexture.image.onload = function () {
+            handleLoadedTexture(neheTexture)
+        }
+ 
+        neheTexture.image.src = "diablo.gif";
+    }	
+	 function handleLoadedTexture(texture) {
+        gl.bindTexture(gl.TEXTURE_2D, texture);   //将纹理与WebGL上下文绑定，设置其为当前纹理，而不能直接作为参数使用某个纹理。
+        
+		//在大多数计算机图形系统中与我们的坐标系相反，在垂直坐标轴上，越往下坐标值反而越大，所以被载入纹理的图片都需要做一个垂直翻转，GIF，JPG，PNG与webgl的坐标都不一致
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		
+		//将图片上传到显卡端的纹理空间中,参数按顺序分别是，图片类型、细节层次（我们以后的课程中会详细讲解）、图片各通道的大小（也就是用于储存R、G、B值的数据类型）、最后是图片本身。
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);  //告诉WebGL如何放大纹理
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); //告诉WebGL如何缩小纹理
+		
+        gl.bindTexture(gl.TEXTURE_2D, null);  //清理工作却是一个好的编程习惯
+    }
+	
+	function initBuffers() {
+			
+		cubeVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+         vertices = [
+            // Front face
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+ 
+            // Back face
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
+ 
+            // Top face
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+ 
+            // Bottom face
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+ 
+            // Right face
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+ 
+            // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        cubeVertexPositionBuffer.itemSize = 3;
+        cubeVertexPositionBuffer.numItems = 24;
+		
+		//在每个数组对象中增加了一个新的顶点属性，每个顶点上这个属性有两个值。纹理坐标指定的是在笛卡尔x,y坐标系中顶点位于纹理中的位置。
+		      cubeVertexTextureCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+           var textureCoords = [
+          // Front face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+
+          // Back face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Top face
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+
+          // Bottom face
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+
+          // Right face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Left face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+        cubeVertexTextureCoordBuffer.itemSize = 2;
+        cubeVertexTextureCoordBuffer.numItems = 24;
+		
+		  cubeVertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+        var cubeVertexIndices = [       //对于一个顶点位置和颜色buffer的索引
+            0, 1, 2,      0, 2, 3,    // Front face
+            4, 5, 6,      4, 6, 7,    // Back face
+            8, 9, 10,     8, 10, 11,  // Top face
+            12, 13, 14,   12, 14, 15, // Bottom face
+            16, 17, 18,   16, 18, 19, // Right face
+            20, 21, 22,   20, 22, 23  // Left face
+        ];
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+        cubeVertexIndexBuffer.itemSize = 1;
+        cubeVertexIndexBuffer.numItems = 36;
+    }
+	
+	function drawScene() {
+		gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		pMatrix = okMat4Proj(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);   //透视投影	/**首先从单位矩阵开始——这个矩阵意味着不进行任何变换——然后乘以你将要进行的第一个变换的矩阵，再乘以你将要进行的第二个变换的矩阵，然后第三个、第四个……最后乘积所得到的矩阵代表了所有你进行过的变换。用来表示当前位移/旋转状态的矩阵我们称之为“模型视图矩阵”（model-view matrix） */
+		mvMatrix = okMat4Trans(0.0, 0.0, -5.0);
+		
+		mvMatrix.rotX(OAK.SPACE_LOCAL, xRot, true);
+        mvMatrix.rotY(OAK.SPACE_LOCAL, yRot, true);
+        mvMatrix.rotZ(OAK.SPACE_LOCAL, zRot, true);
+		
+	
+	
+		 gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+		gl.vertexAttribPointer(shaderProgram.vertexColorAttribute,cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		
+		//绑定纹理信息
+		  gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+		//将我们刚刚载入的纹理指定为0号纹理
+		gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, neheTexture);
+		
+        gl.uniform1i(shaderProgram.samplerUniform, 0); //将0这个值推送到着色器的uniform变量中
+ 
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,  cubeVertexIndexBuffer);
+		setMatrixUniforms();
+		 gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+	}
+	//把uMVMatrix、uPMatrix赋值给模型视图矩阵和投影矩阵
+	function setMatrixUniforms() {
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix.toArray());
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix.toArray());
+    }
+	
+	function tick() {
+		okRequestAnimationFrame(tick); //让浏览器在需要重绘WebGL场景时调用
+		drawScene();
+		animate();
+	}
+	var lastTime = 0;
+	function animate() {
+		var timeNow = (new  Date()).getTime(),elapsed;
+		if(lastTime !== 0){
+			elapsed = timeNow - lastTime;
+		 xRot += (90 * elapsed) / 1000.0;
+            yRot += (90 * elapsed) / 1000.0;
+            zRot += (90 * elapsed) / 1000.0;
+		}
+		lastTime = timeNow;
+	}
+	
+	 /**
+    var mvMatrixStack = [];
+    
+ 
+    function mvPushMatrix() {
+        var copy = new okMat4();
+        mvMatrix.clone(copy);
+        mvMatrixStack.push(copy);
+    }
+ 
+    function mvPopMatrix() {
+        if (mvMatrixStack.length == 0) {
+            throw "Invalid popMatrix!";
+        }
+        mvMatrix = mvMatrixStack.pop();
+    }  */
+</script>
+
+
+
+</body>
+</html>

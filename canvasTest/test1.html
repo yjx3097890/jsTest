@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>circle</title>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript">
+            var canvas, context;
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            context.lineWidth = 10;
+            circle(300, 300, 100, "#F8F315");
+            circle(530, 300, 100, "#00903D");
+            circle(200, 200, 100, "#0094DC");
+            circle(430, 200, 100, "#000000");
+            circle(660, 200, 100, "#ff0000");
+
+            modify(300, 300, 100, "#F8F315")
+            modify(530, 300, 100, "#00903D")
+
+
+           function modify(x, y, r, color) {
+                context.beginPath();
+                context.strokeStyle = color;
+                context.arc(x, y, r, Math.PI / 1.1, Math.PI*1.1);
+                context.stroke();
+                context.beginPath();
+                context.arc(x, y, r, Math.PI * 3 / 2 + 0.1, Math.PI*3 / 2 *1.1);
+                context.stroke();
+           }
+
+          function circle(x, y, r, color) {
+                context.beginPath();
+                context.strokeStyle=color;
+                context.arc(x, y, r, 0, Math.PI*2);
+                context.stroke();
+           }
+        </script>
+    </body>
+</html>

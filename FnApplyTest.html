@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var sayHi = function (name) {
+		console.log("hi" + name + this.age);
+	};
+	sayHi("yjx");
+	sayHi.call(null, "yjx");
+	sayHi.call({age: 11}, "yjx");
+	
+	var li = {
+		sayHi: function (name) {
+			console.log("hello" + name);
+		},
+		sayHello: function (name) {
+			console.log("hello" + name);
+		}
+	};
+	
+	sayHi.call(li, "qq");
+	li.sayHello.call(null, "wbd");
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

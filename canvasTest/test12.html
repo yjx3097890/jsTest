@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>sealedBall</title>
+        <meta charset="utf-8"/>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="500" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src = "wind-all-0.7.3.js"></script>
+        <script type="text/javascript">
+            var  f = 60, g = 9.8,
+            canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d");
+            
+            var Ball = function(x, y, r, velocity, m, acceleration) {
+                if( !velocity ) velocity = {speed: 0, direction: 0};
+                if( !acceleration ) acceleration = {x: 0, y: 0};
+                this.position = {x:  x || 10, y: y || 10};
+                this.radius = r || 10;
+                this.mass = m || 10;
+                this.velocity = {speed: velocity.speed, direction: velocity.direction};
+                this.acceleration = {x: velocity.x, y : velocity.y};
+            };
+            Ball.prototype.draw = function(color) {
+                 context.beginPath();
+                   context.fillStyle = color || "#fff";
+                   context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+                   context.closePath();
+                 context.fill();
+            };
+            Ball.prototype.impactSealedBall = function (sealedBall) {
+                if (Math.pow(sealedBall.position.x - this.position.x, 2) + Math.pow(sealedBall.position.y - this.position.y, 2) >= Math.pow(sealedBall.radius - this.radius, 2)) {
+                    var alpha = Math.acos((this.position.x - sealedBall.position.x) / Math.sqrt(Math.pow(sealedBall.position.x - this.position.x, 2) + Math.pow(sealedBall.position.y - this.position.y, 2))), 
+                    dir = this.velocity.direction;
+                    if (this.position.y >= sealedBall.position.y) {
+                        this.velocity.direction = -dir -Math.PI + 2 * alpha;
+                    }else{
+                        this.velocity.direction = -dir + Math.PI - 2 * alpha;
+                    }
+                }
+                return this;
+            };
+            Ball.prototype.clone = function() {
+                var obj = new Ball();
+                for(var p in this) {
+                    if(this.hasOwnProperty(p)) {
+                        if( typeof this[p] === "object") {
+                            obj[p] = Object.create(this[p]);
+                        }else{
+                            obj[p] = this[p];
+                        }
+                    }
+                }
+                return obj;
+            };
+            
+            
+            var draw = eval(Wind.compile("async", function() {
+                
+                var balls = [],
+                i=0,
+                sealedBall = {
+                    position: {x : canvas.width / 2, y: canvas.height / 2},
+                    radius: 200
+                },
+                ball = {};
+                
+                for(i=0; i< 1000; i++){
+                    ball = new Ball(canvas.width / 2, canvas.height / 2 + 50, 1, {speed: Math.random() * 50 + 80, direction: Math.random() * Math.PI * 2});
+                    balls.push(ball);
+                }
+                
+               
+                 //频率f 太小时，防止背景变化
+              //  context.fillStyle = "rgba(0, 0, 0, 1)";  
+               // context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                while(true){
+                    context.fillStyle = "rgba(0, 0, 0, 0.3)";  //实现残影效果
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                  
+                    context.strokeStyle = "#ffffff";
+                Ball.prototype.draw.call(sealedBall, "#000000");
+                context.stroke();
+                    
+                 
+                   
+                for(var i = 0 ; i < balls.length ; i++){
+                    ball = balls[i];
+                
+                    ball.draw("#ffffff");
+                    
+                    ball.impactSealedBall(sealedBall);
+                  
+                   //先算位置
+                    ball.position.x += ball.velocity.speed * 1 / f * Math.cos(ball.velocity.direction);
+                    ball.position.y += ball.velocity.speed * 1 / f * Math.sin(ball.velocity.direction);  
+                  
+              }
+             
+                 
+                   $await(Wind.Async.sleep(1000 / f));
+                   
+               
+                }
+                
+            })); 
+            
+            draw().start();
+        </script>
+    </body>
+</html>

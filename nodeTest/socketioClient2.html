@@ -1,0 +1,37 @@
+<!Doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<title>bidirectional full-duplex communication</title>
+		 <script type="text/javascript" src='/socket.io/socket.io.js'></script>
+
+	</head>
+	<body>
+		<div id="output"></div>
+		<div>
+			<input type='text' id="data" size=100/>
+			<input type='button' id="send" value="send"/>
+		</div>
+		<script type="text/javascript">
+			var socket = io.connect('http://localhost:8124');
+			socket.on('connect', function () {
+				socket.emit('addme', prompt('who are you?'));
+
+			});
+			socket.on('chat', function (username, data) {
+				var p = document.createElement('p');
+				p.innerHTML = username+": "+ data;
+				document.getElementById('output').appendChild(p);
+
+			});
+
+			window.addEventListener('load', function () {
+				document.getElementById('send').addEventListener('click', function () {
+					var text = document.getElementById('data').value;
+					socket.emit('sendchat', text);
+				}, false);
+			});
+
+		</script>
+	</body>
+</html>

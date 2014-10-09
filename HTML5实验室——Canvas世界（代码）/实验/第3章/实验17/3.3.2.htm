@@ -1,0 +1,221 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+    <script src="../../script/easel.js" type="text/javascript"></script>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+<div style="border-bottom: #222 15px solid; border-left: #222 15px solid; background-color: #111; color: #ccc; border-top: #222 15px solid; border-right: #222 15px solid"><canvas id="myCanvas4" width="700" height="500">Your browser does not support the canvas element. </canvas></div>
+    <script>
+        var canvas;
+        var stage;
+
+        var txt;
+        var shape;
+        var count = 0;
+
+        function init() {
+            canvas = document.getElementById("myCanvas4");
+            stage = new Stage(canvas);
+
+            // Create a new Text object, and position it on stage:
+            txt = new Text("text on the canvas... 0!", "16px Arial", "#FFF");
+            txt.textBaseline = "top"; // draw text relative to the top of the em box.
+            txt.x = 10;
+            txt.y = 10;
+            // txt.rotation = 20;
+            //txt.outline = true;
+            stage.addChild(txt);
+            txt2 = new Text("text on the canvas... 0!", "16px Arial", "#FFF");
+            txt2.textBaseline = "top"; // draw text relative to the top of the em box.
+            txt2.x = 10;
+            txt2.y = 30;
+            stage.addChild(txt2);
+            txt3 = new Text("text on the canvas... 0!", "16px Arial", "#FFF");
+            txt3.textBaseline = "top"; // draw text relative to the top of the em box.
+            txt3.x = 10;
+            txt3.y = 50;
+            stage.addChild(txt3);
+            txt4 = new Text("text on the canvas... 0!", "16px Arial", "#FFF");
+            txt4.textBaseline = "top"; // draw text relative to the top of the em box.
+            txt4.x = 10;
+            txt4.y = 70;
+            stage.addChild(txt4);
+            // this shape will be the background for the text:
+            shape = new Shape();
+            shape.x = txt.x;
+            shape.y = txt.y;
+            shape.rotation = txt.rotation;
+            stage.addChildAt(shape, 0);
+            txt.text = "text on the canvas... " + count + "!";
+            shape.graphics.clear().drawRect(-10, -10, txt.getMeasuredWidth() + 20, 36 + 20);
+            stage.update();
+
+        }
+        init();
+</script>
+  <script>
+
+      var Matrix4 = function (n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44) {
+
+          this.set(
+
+        n11 || 1, n12 || 0, n13 || 0, n14 || 0,
+        n21 || 0, n22 || 1, n23 || 0, n24 || 0,
+        n31 || 0, n32 || 0, n33 || 1, n34 || 0,
+        n41 || 0, n42 || 0, n43 || 0, n44 || 1
+
+    );
+      }
+
+      Matrix4.prototype = {
+
+          set: function (n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44) {
+
+              this.n11 = n11; this.n12 = n12; this.n13 = n13; this.n14 = n14;
+              this.n21 = n21; this.n22 = n22; this.n23 = n23; this.n24 = n24;
+              this.n31 = n31; this.n32 = n32; this.n33 = n33; this.n34 = n34;
+              this.n41 = n41; this.n42 = n42; this.n43 = n43; this.n44 = n44;
+
+              return this;
+          },
+          multiplyVector4: function (v) {
+
+              var vx = v.x, vy = v.y, vz = v.z, vw = v.w;
+
+              v.x = this.n11 * vx + this.n21 * vy + this.n31 * vz + this.n41 * vw;
+              v.y = this.n12 * vx + this.n22 * vy + this.n32 * vz + this.n42 * vw;
+              v.z = this.n13 * vx + this.n23 * vy + this.n33 * vz + this.n43 * vw;
+              v.w = this.n14 * vx + this.n24 * vy + this.n34 * vz + this.n44 * vw;
+
+              return v;
+
+          }
+      };
+
+     
+    </script>
+    <script type="text/javascript">
+
+        var cxt4 = canvas.getContext("2d");
+        cxt4.lineWidth = 3;
+
+        var startX4 = 250;
+        var startY4 = 250;
+        var distance = 500;
+        var eyePosition = { x: 0, y: 0, z: 700 };
+        Vector4 = function (x, y, z, w) {
+
+            this.x = x || 0;
+            this.y = y || 0;
+            this.z = z || 0;
+            this.w = w || 1;
+
+        };
+        var Points = [];
+        function init() {
+            Points[0] = new Vector4(100, 100, 100, 1);
+            Points[1] = new Vector4(100, 100, -100, 1);
+            Points[2] = new Vector4(-100, 100, -100, 1);
+            Points[3] = new Vector4(-100, 100, 100, 1);
+            Points[4] = new Vector4(100, -100, 100, 1);
+            Points[5] = new Vector4(100, -100, -100, 1);
+            Points[6] = new Vector4(-100, -100, -100, 1);
+            Points[7] = new Vector4(-100, -100, 100, 1);
+        }
+        var m4 = new Matrix4();
+        var angle = 0;
+        var currentAngle = 0;
+        function transform() {
+            angle = degToRad(currentAngle)
+            init();
+            m4.n41++;
+            m4.n42++;
+            m4.n43++;
+            for (var i = 0; i < Points.length; i++) {
+                Points[i] = m4.multiplyVector4(Points[i]);
+            }
+        }
+        function changedistance4() {
+            for (var i = 0; i < Points.length; i++) {
+                Points[i].x = Points[i].x * distance / Math.abs(eyePosition.z - Points[i].z);
+                Points[i].y = Points[i].y * distance / Math.abs(eyePosition.z - Points[i].z);
+            }
+        }
+
+
+        var drawCube4 = function () {
+            transform();
+            txt.text = m4.n11 + "_" + m4.n12 + "_" + m4.n13 + "_" + m4.n14;
+            txt2.text = m4.n21 + "_" + m4.n22 + "_" + m4.n23 + "_" + m4.n24;
+            txt3.text = m4.n31 + "_" + m4.n32 + "_" + m4.n33 + "_" + m4.n34;
+            txt4.text = m4.n41 + "_" + m4.n42 + "_" + m4.n43 + "_" + m4.n44;
+            shape.graphics.clear().drawRect(-10, -10, txt.getMeasuredWidth() + 20, 36 + 20);
+            stage.update();
+
+            cxt4.clearRect(100, 100, 1200, 1200);
+            changedistance4();
+            cxt4.strokeStyle = randomColor();
+            cxt4.beginPath();
+            cxt4.moveTo(startX4 + Points[0].x, startY4 - Points[0].y);
+            cxt4.lineTo(startX4 + Points[1].x, startY4 - Points[1].y);
+            cxt4.lineTo(startX4 + Points[2].x, startY4 - Points[2].y);
+            cxt4.lineTo(startX4 + Points[3].x, startY4 - Points[3].y);
+            cxt4.lineTo(startX4 + Points[0].x, startY4 - Points[0].y);
+            cxt4.moveTo(startX4 + Points[4].x, startY4 - Points[4].y);
+            cxt4.lineTo(startX4 + Points[5].x, startY4 - Points[5].y);
+            cxt4.lineTo(startX4 + Points[6].x, startY4 - Points[6].y);
+            cxt4.lineTo(startX4 + Points[7].x, startY4 - Points[7].y);
+            cxt4.lineTo(startX4 + Points[4].x, startY4 - Points[4].y);
+            cxt4.moveTo(startX4 + Points[1].x, startY4 - Points[1].y);
+            cxt4.lineTo(startX4 + Points[5].x, startY4 - Points[5].y);
+            cxt4.moveTo(startX4 + Points[0].x, startY4 - Points[0].y);
+            cxt4.lineTo(startX4 + Points[4].x, startY4 - Points[4].y);
+            cxt4.moveTo(startX4 + Points[2].x, startY4 - Points[2].y);
+            cxt4.lineTo(startX4 + Points[6].x, startY4 - Points[6].y);
+            cxt4.moveTo(startX4 + Points[3].x, startY4 - Points[3].y);
+            cxt4.lineTo(startX4 + Points[7].x, startY4 - Points[7].y);
+            cxt4.stroke();
+        }
+        drawCube4()
+        var rotate4Async = eval(Jscex.compile("async", function () {
+            while (Points[0].z < 300) {
+                currentAngle += 5;
+                drawCube4();
+                $await(Jscex.Async.sleep(100));
+            }
+        }));
+        function degToRad(a) {
+            return (a / (360 / (2 * Math.PI)));
+        }
+        function rotate4(angle) {
+            for (var i = 0; i < Points.length; i++) {
+                var tempX = Points[i].x;
+                var tempZ = Points[i].z;
+                Points[i].x = Points[i].x * Math.cos(angle) - Points[i].z * Math.sin(angle);
+                Points[i].z = Points[i].z * Math.cos(angle) + tempX * Math.sin(angle);
+            }
+            for (var i = 0; i < Points.length; i++) {
+                var tempY = Points[i].y;
+                Points[i].y = Points[i].z * Math.sin(angle) - Points[i].y * Math.cos(angle);
+                Points[i].z = tempY * Math.sin(angle) + Points[i].z * Math.cos(angle);
+            }
+        }
+        function randomColor() { 
+            var arrHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]; var strHex = "#";
+            var index;
+            for (var i = 0; i < 6; i++) {
+                index = Math.round(Math.random() * 15);
+                strHex += arrHex[index];
+            }
+            return strHex;
+        } 
+      
+    </script>
+
+    <div id="show">
+    </div>
+    <input type="button" onclick="rotate4Async().start();" value="开始变换" style="width: 135px" />
+      </body>
+    </html>

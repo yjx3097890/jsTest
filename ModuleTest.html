@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+</head>
+<body>
+<script type="text/javascript" src="namespaceTest.html"></script>
+<script type="text/javascript">
+	Myapp.namespace("Myapp.utils.array");
+	Myapp.utils.array = (function () {
+		//声明依赖
+		var obj = Myapp.yjx.object,
+			lang = Myapp.utils.lang,
+		//私有属性
+			arr_str = "[object Array]",
+			tostr = Object.prototype.toString,
+		//私有方法
+			indexOf = function (array, target) {
+				var index = -1, i, len = array.length;
+				for (i = 0; i < len; i++) {
+					if (array[i] === target) {
+						index = i;
+						return index;
+					}
+				}
+				return index;
+			};
+		//可选的一次性初始化过程
+		//...
+		//暴露API
+		return {
+			indexOf: indexOf,
+			isArray: function (array) {
+				if (tostr.call(array) === arr_str) {
+					return true;
+				}
+				return false;
+			}
+		};
+	})();
+	
+	var myArray = My'app.utils.array;
+	console.log(myArray.isArray([12,23]));
+	console.log(myArray.indexOf([12,23], 23));
+	
+	console.log(0 < {}.length);
+</script>
+
+
+</body>
+</html>

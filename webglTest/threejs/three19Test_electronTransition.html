@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - materials</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script type="text/javascript" src="three.js"></script>
+  <script type="text/javascript" src="TrackballControls.js"></script>
+  <script type="text/javascript" src="Tween.js"></script>
+  <script type="text/javascript" src="Sparks.js"></script>
+  <script type="text/javascript" src="tail.js"></script>
+  
+  	<script src="CopyShader.js"></script>
+    <script src="ConvolutionShader.js"></script>
+    
+		<script src="EffectComposer.js"></script>
+		<script src="ShaderPass.js"></script>
+		<script src="MaskPass.js"></script>
+		<script src="RenderPass.js"></script>
+		<script src="BloomPass.js"></script>
+  
+  <script src="ColorifyShader.js"></script>
+  
+ <script id="fragmentShader_spotLight" type="x-shader/x-fragment">
+
+        precision mediump float;
+      
+      varying vec2 vUv;
+
+        void main( void ) {
+            
+           float a = vUv.y;
+            gl_FragColor = vec4(1.0 * a, 0.8 * pow(a, 4.0), 0.8 *  pow(a, 4.0) , 0.2 * pow(a, 2.0));
+          
+        }
+
+</script>
+
+		<script id="vertexShader_spotLight" type="x-shader/x-vertex">
+
+			
+			varying vec2 vUv;
+
+			void main()
+			{
+
+				vUv =  uv;
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_Position = projectionMatrix * mvPosition;
+
+			}
+
+		</script>
+ 
+
+ 
+		<script>
+
+
+			var container, time = 0;
+
+			var camera, scene, renderer, atom, beam, controls, electrons, position, sceneLight;
+			var directionalLight, pointLight,spotLight;
+
+			 var mesh, spotBall, faerieMaterial, uniforms={}, particleMaterial, particle, particles, geometry, alpha, composer ,atomRadius;
+             var materials={};
+            var clock = new THREE.Clock();
+			init();
+			animate();
+
+			function init() {
+                var i,j;
+                
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 0, 0, 800 );
+                
+                controls = cameraControl(camera);
+                
+				scene = new THREE.Scene();
+                sceneLight = new THREE.Scene();
+     
+				// geometry
+			
+            
+            atom = new THREE.Object3D();
+            
+            uniforms.eleTrack = {
+                time :{type: "f" , value: 1.0},
+                resolution:{type: "v2",value: new THREE.Vector2()}
+            }
+            
+            var sphereMaterial = new THREE.MeshPhongMaterial({color: 0x6D7790, transparent: true, opacity: 0.05, depthTest:true }),
+                protonMaterial = new THREE.MeshBasicMaterial({color: 0x00CC33 }),    //质子
+                neutronMaterial = new THREE.MeshBasicMaterial({color: 0xFF66FF }),
+                electronMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, transparent: true, blending: THREE.AdditiveBlending,  opacity: 0.5, depthTest: false }),
+                ring = 2 ,
+                obj;   
+       
+            
+            position = new THREE.Vector3(-200, 0, 0);
+            atomRadius = 100;
+            for (i = 0; i < ring; i++) {
+                var obj = new THREE.Mesh(new THREE.SphereGeometry(atomRadius * (i + 1), 200, 200), sphereMaterial);
+                obj.position.copy(position);
+                atom.add(obj);
+            }
+            
+            //质子、中子
+            for ( i = 0; i< 9; i++){
+                obj = new THREE.Mesh(new THREE.SphereGeometry(4, 20, 20), i%2 === 0 ? protonMaterial : neutronMaterial );
+                var v = new THREE.Vector3(Math.random(), Math.random(), Math.random());
+                v.multiplyScalar(2).sub( new THREE.Vector3(1, 1, 1)).multiplyScalar(4);
+                obj.position.copy(position).add(v);
+                atom.add(obj);
+            }
+
+            //电子
+            electrons = [];
+            alpha = Math.PI / 4;
+            for ( i = 0; i < 4 ; i++) {
+                obj = new THREE.Mesh(new THREE.SphereGeometry(3, 20, 20), electronMaterial.clone());
+                obj.ring = atomRadius * ((i%ring) + 1);
+                obj.material.color.setRGB(0.8, obj.ring/atomRadius -1, 0.0); 
+          
+                v =  new THREE.Vector3(1,1,1);
+                v.multiplyScalar(2).sub( new THREE.Vector3(1, 1, 1)).normalize().multiplyScalar(obj.ring);
+                obj.position.copy(position).add(v);
+                electrons.push(obj);
+                atom.add(obj);
+                
+                obj.tail = new THREE.Tail(obj.position, 21, obj.material.color, 0.3);
+                atom.add(obj.tail)
+
+            }
+
+			scene.add(atom);
+
+            beam = new THREE.Object3D();
+            //光源
+
+            
+            //电子流
+            uniforms.spotLight = {
+               
+            };
+            faerieMaterial = new THREE.ShaderMaterial({
+                uniforms: uniforms.spotLight,
+                vertexShader: document.getElementById("vertexShader_spotLight").textContent,
+                fragmentShader: document.getElementById("fragmentShader_spotLight").textContent,
+                depthTest: false,
+                transparent: true,
+               side: THREE.DoubleSide 
+            });
+            cylinder = new THREE.Mesh( new THREE.CylinderGeometry( 5, 400, 2000, 400, 1000, true), faerieMaterial );
+            cylinder.position.set( -70, 00, 0 );
+            cylinder.rotation.z = -Math.PI/2;
+            beam.add(cylinder);
+      
+			scene.add( beam );
+            
+            //碰撞粒子
+       
+            particles = [];
+            
+            particleMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, blending: THREE.AdditiveBlending, depthTest: false, transparent: true});
+            for(var i = 0; i<100; i++) {
+                particle = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 20), particleMaterial);
+                particle.position.set(1000, 0, 0);
+                var r1 = Math.random() * Math.PI * 2;
+                var r2 = Math.random() * Math.PI * 2;
+                var v = new THREE.Vector3(Math.abs(Math.cos(r1)), - Math.sin(r1) * Math.cos(r2),  Math.sin(r1) * Math.sin(r2)).multiplyScalar(atomRadius * 1.5);
+                particle.tween = new TWEEN.Tween(particle.position).to(position.clone().add(v), 3000).delay(8000 * Math.random()).easing(TWEEN.Easing.Quadratic.In).onComplete(function () {
+                   this.set(1000, 0, 0);
+                }).start();
+                particle.tween.chain(particle.tween);
+                particles.push(particle);
+                
+                sceneLight.add(particle);
+            }
+           
+           
+           
+                
+		// Lights
+
+				scene.add( new THREE.AmbientLight( 0x990000 )  );
+		
+				directionalLight = new THREE.DirectionalLight( 0xff0000, 1.125 );
+				directionalLight.position.x =  - 1000;
+				directionalLight.position.y =  0;
+			
+				directionalLight.position.normalize();   //变为单位向量
+      //        scene.add( directionalLight );
+
+				pointLight = new THREE.PointLight( 0xff0000, 1000);
+                pointLight.position.set(-1000, 0 , 0);
+	//			scene.add( pointLight );
+
+				
+                spotLight = new THREE.SpotLight( 0xff0000, 100 );
+                spotLight.position.set( 1000, 0 , 0 );
+           //     spotLight.castShadow = true;
+          //     spotLight.onlyShadow = true;
+             //   spotLight.shadowMapWidth = 1024;
+             //   spotLight.shadowMapHeight = 1024;
+
+             //   spotLight.shadowCameraNear = 500;
+             //   spotLight.shadowCameraFar = 4000;
+             //   spotLight.shadowCameraFov = 30;
+
+                scene.add( spotLight );
+              
+                
+                
+                //render
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.autoClear = false;
+
+				container.appendChild( renderer.domElement );
+
+				//postprocessing
+                var rtParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: true };   //stencilBuffer: true 模板测试的关键！
+                
+                var renderModel = new THREE.RenderPass( scene, camera );
+      
+                var renderLight = new THREE.RenderPass( sceneLight, camera);
+              renderLight.clear = false;
+				var renderMask = new THREE.MaskPass( sceneLight, camera);
+                //     renderMask.inverse = true;
+                var clearMask = new THREE.ClearMaskPass();
+				var effectBloom = new THREE.BloomPass(1.5 );    
+ 
+ 
+                
+            
+ 
+                composer = new THREE.EffectComposer( renderer,  new THREE.WebGLRenderTarget( window.innerWidth , window.innerHeight, rtParameters ));
+
+               composer.addPass( renderModel );
+                composer.addPass( renderLight );
+               
+       //         composer.addPass( renderMask );
+               composer.addPass( effectBloom );
+       //         composer.addPass( clearMask );
+                
+				var effect = new THREE.ShaderPass( THREE.CopyShader);  //简单复制作用
+				effect.renderToScreen = true;
+				composer.addPass( effect );
+                
+                
+				window.addEventListener( 'resize', onWindowResize, false );
+                onWindowResize();
+			}
+
+			function onWindowResize() {
+            
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+			
+
+			}
+
+			function render() {
+                
+                 var delta =  clock.getDelta(), v, alphat, s;
+                 time += delta;
+                 if(electrons.slow) {
+                    time -= delta; 
+                 }
+			
+                 TWEEN.update();
+                 
+                for(var i=0, el = electrons.length ; i < el; i++){
+                    var ele = electrons[i];
+                    if(ele){
+                        ele.tail.geometry.verticesNeedUpdate = true; 
+                        ele.tail.geometry.colorsNeedUpdate = true;
+                        
+                        alphat = ( i + 1 ) * alpha;
+                        v = new THREE.Vector3( Math.cos(time), - Math.sin(time) * Math.cos(alphat),  Math.sin(time) * Math.sin(alphat) ).multiplyScalar(ele.ring);
+                        ele.position.copy(position).add(v );
+                    } 
+                   
+                    for(var j = 0,pl = particles.length; j < pl && ele != null; j++){
+                        var par = particles[j];
+                        if( ele.position.distanceToSquared( par.position ) < 100) {
+                            ele.position.ele = ele;
+                            v = new THREE.Vector3( Math.cos(time + 5),- Math.sin(time + 5) * Math.cos(alphat),  Math.sin(time + 5) * Math.sin(alphat) ).multiplyScalar(atomRadius);
+                            ele.material.color.setHex(0xffffff);
+                            ele.position.c = 0;
+                            electrons.slow = true;
+                            new TWEEN.Tween(ele.position).to(position.clone().add(v), 5000).easing(TWEEN.Easing.Quadratic.In).onStart(function(){
+                                this.ele.tail.geometry.verticesNeedUpdate = true; 
+                                this.ele.tail.geometry.colorsNeedUpdate = true;
+                                this.ele.tail.material.map = new THREE.Texture( generateSprite(this.ele.material.color));
+                                this.ele.tail.material.map.needsUpdate = true;
+                                
+                                for(var k=0;k<particles.length;k++){
+                                    particles[k].tween.stop();
+                                }
+                            }).onUpdate(function() {
+                                this.c += delta;
+                                this.ele.material.color.setRGB(this.c / 5, 1.0 - this.c / 5, 0.0);
+                                this.ele.tail.geometry.verticesNeedUpdate = true; 
+                                this.ele.tail.geometry.colorsNeedUpdate = true;
+                                this.ele.tail.material.map = new THREE.Texture( generateSprite(this.ele.material.color));
+                                this.ele.tail.material.map.needsUpdate = true;
+                            }).onComplete(function () {
+                                 for(var k = particles.length; k > 0 ;k--){
+                                    particles[k-1].tween.start();
+                                }
+                            
+                                electrons.slow = false;
+                                this.ele.ring = atomRadius;
+                                this.ele.material.color.setRGB(0.8, this.ele.ring/atomRadius -1, 0.0);  
+                                this.ele.tail.material.map = new THREE.Texture( generateSprite(this.ele.material.color));
+                                this.ele.tail.material.map.needsUpdate = true;
+                                electrons.push(this.ele);
+                      
+                            }).start();
+                            
+                            electrons[i] = null;
+                        }
+                    }
+                    
+                }
+		
+                controls.update();
+                //renderer.render( scene, camera );
+                
+                renderer.clear();
+                composer.render(0.001 );
+
+			}
+    
+    
+    	  function generateSprite(color) {
+
+            var canvas = document.createElement( 'canvas' );
+            canvas.width = 32;
+            canvas.height = 32;
+
+            var context = canvas.getContext( '2d' );
+            var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
+            gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
+            gradient.addColorStop( 0.2, 'rgba(' + Math.round(color.r * 255) + ',' + Math.round(color.g * 255) + ',' + Math.round(color.b * 255) + ',0.8)' );
+            gradient.addColorStop( 0.4, 'rgba(' + Math.round(color.r * 255 / 2  - 100) + ',' + Math.round(color.g * 255 / 1.5 - 100) + ',' + Math.round(color.b * 255 / 1.5 - 100) + ',0.5)' );
+            gradient.addColorStop( 1, 'rgba(0,0,0,0)' );
+
+            context.fillStyle = gradient;
+            context.fillRect( 0, 0, canvas.width, canvas.height );
+
+            return canvas;
+
+        }    
+    
+        function cameraControl(camera){
+                   var controls = new THREE.TrackballControls( camera );
+                
+                    //旋转速度
+                    controls.rotateSpeed = 1.0;
+                    //变焦速度
+                    controls.zoomSpeed = 1.2;
+                    //平移速度
+                    controls.panSpeed = 0.8;
+                    //是否不变焦
+                    controls.noZoom = false;
+                    //是否不平移
+                    controls.noPan = true;
+                    //可能是惯性 true没有惯性
+                    controls.staticMoving = false;
+                    //动态阻尼系数 就是灵敏度
+                    controls.dynamicDampingFactor = 0.3;
+                    
+                    return controls;
+         }
+		</script>
+
+	</body>
+</html>

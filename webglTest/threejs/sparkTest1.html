@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - materials</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script type="text/javascript" src="three.js"></script>
+  <script type="text/javascript" src="TrackballControls.js"></script>
+  <script type="text/javascript" src="Tween.js"></script>
+  <script type="text/javascript" src="Sparks.js"></script>
+  
+  	<script src="CopyShader.js"></script>
+    <script src="ConvolutionShader.js"></script>
+    
+		<script src="EffectComposer.js"></script>
+		<script src="ShaderPass.js"></script>
+		<script src="MaskPass.js"></script>
+		<script src="RenderPass.js"></script>
+		<script src="BloomPass.js"></script>
+  
+  <script src="ColorifyShader.js"></script>
+ 
+ 
+		<script>
+
+
+			var container, stats;
+
+			var camera, scene, renderer, controls,  position;
+			var directionalLight, pointLight,spotLight;
+
+			 var tail, particles, material;
+             var materials={};
+               var _rotation = 0;
+            var clock = new THREE.Clock();
+			init();
+			animate();
+
+			function init() {
+                var i,j;
+                
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
+				camera.position.set( 0, 0, 1000 );
+                
+                controls = cameraControl(camera);
+                
+				scene = new THREE.Scene();
+           
+     
+				//particleSystem
+                var Pool = {
+					__pools: [],
+					// Get a new Vector
+					get: function() {
+						if ( this.__pools.length > 0 ) {
+							return this.__pools.pop();
+						}
+						console.log( "pool ran out!" )
+						return null;
+					},
+					// Release a vector back into the pool
+					add: function( v ) {
+						this.__pools.push( v );
+					}
+				};
+                
+                particles = new THREE.Geometry();
+                for(var i=0; i < 5000; i++) {
+                    	particles.vertices.push( new THREE.Vector3( Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY  ) );
+                    	particles.colors.push( new THREE.Color( 0x000000 ) );
+                        Pool.add(i);
+                }
+                var sprite = new THREE.Texture(generateSprite(new THREE.Color(0x3C72BA)));
+                sprite.needsUpdate = true;
+                material = new THREE.ParticleBasicMaterial( { size: 50,  map: sprite, blending: THREE.AdditiveBlending, depthTest: false, transparent : true ,  vertexColors: THREE.VertexColors} );
+                tail = new THREE.ParticleSystem(particles, material);
+                tail.position.z = 0;
+                scene.add(tail);
+                
+                //sparks
+                
+				sparksEmitter = new SPARKS.Emitter( new SPARKS.SteadyCounter( 600 ) );
+
+				var emitterpos = new THREE.Vector3( Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY );
+				sparksEmitter.addInitializer( new SPARKS.Position( new SPARKS.PointZone( emitterpos ) ) );
+				sparksEmitter.addInitializer( new SPARKS.Lifetime( 0, 1.2 ));  //粒子存在时间
+				sparksEmitter.addInitializer( new SPARKS.Target( null, setTargetParticle ) );   
+
+                var sphereCap = new SPARKS.SphereCapZone(0, 0, 0, 10, 10, 40);
+		//		sparksEmitter.addInitializer( new SPARKS.Velocity( sphereCap ) );
+				// TOTRY Set velocity to move away from centroid
+
+				sparksEmitter.addAction( new SPARKS.Age() );
+			//	sparksEmitter.addAction( new SPARKS.Accelerate( 1000 ) ); //设置一个运动的加速度
+				sparksEmitter.addAction( new SPARKS.Move() );
+			//	sparksEmitter.addAction( new SPARKS.RandomDrift( 10, 10, 10 ) );   //粒子位置的最大摆动
+
+				sparksEmitter.addCallback( SPARKS.EVENT_PARTICLE_CREATED, onParticleCreated );
+				sparksEmitter.addCallback( SPARKS.EVENT_PARTICLE_DEAD, onParticleDead );
+				sparksEmitter.start();
+                
+                function setTargetParticle() {
+                    var target = Pool.get();
+                    return target; 
+                }
+              
+                function onParticleCreated(particle) {
+                    var position = particle.position,
+                    target = particle.target;
+                    if(target) {
+                        _rotation +=  100 * clock.getDelta();
+                        emitterpos.x = 200 * Math.sin( _rotation * SPARKS.Utils.DEGREE_TO_RADIAN);
+                        emitterpos.y = 200 * Math.cos( _rotation * SPARKS.Utils.DEGREE_TO_RADIAN);
+                        emitterpos.z = 200 * Math.cos( _rotation * SPARKS.Utils.DEGREE_TO_RADIAN);
+               
+                        particles.colors[target].setRGB(1, 1, 1); 
+                        particles.vertices[target] = position;
+                   }
+                }
+                
+                function onParticleDead(particle) {
+                    var target = particle.target;
+                    if(target) {
+                        particles.vertices[target].set( Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY ); 
+                        particles.colors[target].setRGB(0,0,0);
+                        Pool.add(target);
+                    }
+                }
+                
+                //sparksEnd
+           
+                
+                // Lights
+
+				scene.add( new THREE.AmbientLight( 0xFFFFFF )  );
+	
+              
+                
+                
+                //render
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+               renderer.autoClear = false;
+
+				container.appendChild( renderer.domElement );
+
+				//postprocessing
+                var rtParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: true };   //stencilBuffer: 模板测试的关键！
+                
+                var renderModel = new THREE.RenderPass( scene, camera );
+      
+              
+            
+		//	var renderMask = new THREE.MaskPass( sceneLight, camera);
+                //     renderMask.inverse = true;
+                var clearMask = new THREE.ClearMaskPass();
+				var effectBloom = new THREE.BloomPass(1.5 );    
+ 
+                composer = new THREE.EffectComposer( renderer,  new THREE.WebGLRenderTarget( window.innerWidth , window.innerHeight, rtParameters ));
+
+               composer.addPass( renderModel );
+             
+               
+       //         composer.addPass( renderMask );
+        //       composer.addPass( effectBloom );
+       //         composer.addPass( clearMask );
+                
+				var effect = new THREE.ShaderPass( THREE.CopyShader);  //简单复制作用
+				effect.renderToScreen = true;
+				composer.addPass( effect );
+                
+                
+				window.addEventListener( 'resize', onWindowResize, false );
+                onWindowResize();
+			}
+
+			function onWindowResize() {
+            
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+			
+
+			}
+
+			function render() {
+                
+                 var delta =  clock.getDelta();
+
+                renderer.clear();
+                tail.geometry.verticesNeedUpdate = true;    //必须放到Render里
+                tail.geometry.colorsNeedUpdate = true;
+		
+                controls.update();
+                
+         //       composer.render(0.001 );
+                renderer.render( scene, camera );
+
+			}
+    
+    
+                function generateSprite(color) {
+
+					var canvas = document.createElement( 'canvas' );
+					canvas.width = 32;
+					canvas.height = 32;
+
+					var context = canvas.getContext( '2d' );
+					var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
+			//		gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
+			//		gradient.addColorStop( 0.2, 'rgba(0,255,255,0.8)' );
+			//		gradient.addColorStop( 0.5, 'rgba(0,0,64,0.5)' );
+			//		gradient.addColorStop( 1, 'rgba(0,0,0,0)' );
+                    
+                    gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
+		gradient.addColorStop( 0.1, 'rgba(' + color.r * 255 + ',' + color.g * 255 + ',' + color.b * 255 + ',0.8)' );
+		gradient.addColorStop( 0.4, 'rgba(' + Math.round(color.r * 255 / 2  - 100) + ',' + Math.round(color.g * 255 / 1.5 - 100) + ',' + Math.round(color.b * 255 / 1.5 - 100) + ',0.5)' );
+        gradient.addColorStop( 1, 'rgba(0,0,0,0)' );
+					context.fillStyle = gradient;
+					context.fillRect( 0, 0, canvas.width, canvas.height );
+
+					return canvas;
+
+				}
+    
+                function cameraControl(camera){
+                   var controls = new THREE.TrackballControls( camera );
+                
+                    //旋转速度
+                    controls.rotateSpeed = 1.0;
+                    //变焦速度
+                    controls.zoomSpeed = 1.2;
+                    //平移速度
+                    controls.panSpeed = 0.8;
+                    //是否不变焦
+                    controls.noZoom = false;
+                    //是否不平移
+                    controls.noPan = true;
+                    //可能是惯性 true没有惯性
+                    controls.staticMoving = false;
+                    //动态阻尼系数 就是灵敏度
+                    controls.dynamicDampingFactor = 0.3;
+                    
+                    return controls;
+                }
+		</script>
+
+	</body>
+</html>

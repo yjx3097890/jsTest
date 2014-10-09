@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Using typeface.js</title>
+<script type="text/javascript" src="typeface-0.15.js"></script>
+<script type="text/javascript" src="gentilis_regular.typeface.js"></script>
+<script type="text/javascript" src="gentilis_italic.typeface.js"></script>
+</head>
+<body>
+
+<!-- 使用自定义字体的标签必须添加 typeface-js 类名。
+然后写入字体名称如实例中的 gentilis
+字体名称就是特殊字体转换成的 JS 文件名的前缀，
+例如实例中的 gentilis_regular.typeface.js 字体名称即为 gentilis
+注：每种特殊字体生成的 JS 文件名的前缀都是不一样的，都是该种字体的名称。-->
+<div class="typeface-js" style="font-family:gentilis;font-style:italic"> Text here in gentilis font 好好学习</div>
+<div >不支持中文！</div>
+
+</body>
+</html>

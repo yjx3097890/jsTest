@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html >
+	<head>
+        <meta charset="utf-8" />
+		<title>arc</title>
+        <style type="text/css">
+            body {
+                background-color: #000;
+            }
+        </style>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3"></canvas>
+       <script type="text/javascript" src="wind-all-0.7.3.js"></script>
+        <script type="text/javascript" src = "Vector2.js"></script>
+        <script type="text/javascript">
+            var Word = function (text, position, color, size) {
+                this.text = text;
+                this.position = position;
+                this.size = size || 50;
+                this.color = color || "#ffffff";
+            };
+
+            Word.prototype = {
+                constructor : Word,
+
+                draw : function (context) {
+                    context.font = "bold "+ this.size +"px 宋体";
+                    context.fillStyle = this.color;
+                    context.fillText(this.text, this.position.x, this.position.y);
+                },
+
+                getWidth :function (context) {
+                    context.measureText(this.text).width;
+                }
+
+            };
+        </script>
+        <script type="text/javascript">
+            var canvas, context;
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            
+            var text = "加载中...", 
+                currentMap = 1,
+                words;
+            
+            var load = eval(Wind.compile("async", function () {
+             
+                while (true) {
+                    context.clearRect(0 , 0, canvas.width, canvas.height);
+                    if (currentMap === text.length -1) {
+                        currentMap = 1;
+                    }
+                    if (words) {
+                        words[currentMap-1].size *= 1.5;
+                        words[currentMap].size *= 2;
+                        words[currentMap + 1].size *= 1.5;
+                        for (var i=0, len = words.length; i < len; i++) {
+                            word = words[i];
+                            word.draw(context);
+                        }
+                        words[currentMap-1].size /= 1.5;
+                        words[currentMap].size /= 2;
+                        words[currentMap+1].size /= 1.5;
+                    }else{
+                        words = drawText(text);
+                    }
+                    currentMap++;
+                    $await(Wind.Async.sleep(150));
+                }
+                    
+            }));
+            load().start();
+            
+            
+           function drawText(text) {
+                var words = text.split(""), word = null,
+                i, len;
+                for (i=0, len = words.length; i < len; i++) {
+                    word = words[i];
+                    words[i] = new Word(word, new Vector2(50 * i, 100));
+                    words[i].draw(context);
+                }
+                return words;
+           }
+
+
+            
+        </script>
+    </body>
+</html>

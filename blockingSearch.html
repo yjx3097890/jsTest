@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+
+<script type="text/javascript">
+	function block(array,n){
+		var max=[],len=array.length,el=Math.ceil(len/n),i;
+		for(i=0;i<n;i++){
+			max.push(getMax(array,i*el,(i+1)*el-1));
+		}
+		return max;
+	}
+	function getMax(array,i,j){
+		var m=array[i],k,index=i;
+		for(k=j;k>i;k--){
+			if(typeof m != "undefined" && typeof array[k] != "undefined" && m<array[k]){
+				m=array[k];
+				index=k;
+			}
+		}
+		return index;
+	}
+	function blockSearch(key,array){
+		var n=5,max=block(array,n),len=array.length,el=Math.ceil(len/n),k,j,f,result;
+		for(k=0;k<n;k++){
+			if(key<=array[max[k]]){
+				break;
+			}
+		}
+		for(j=el*k,f=(k+1)*el;j<=f;j++){
+			if(typeof array[j] != "undefined" &&key==array[j]){
+				result=j;
+				break;
+			}
+		}
+		return result;
+	}
+	
+	var test=[13,11,12,28,22,29,33,34,32,67,53,69,87]; //必须是分块有序
+	console.log(blockSearch(67,test));
+	
+</script>
+</body>
+</html>

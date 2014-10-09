@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>cube</title>
+        <style type="text/css">
+             body {
+                background-color: #111;
+                }
+        </style>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src="Vector3.js"></script>
+        <script type="text/javascript" src="wind-all-0.7.3.js"></script>
+        <script type="text/javascript" src="createjs/events/Event.js"></script>
+        <script type="text/javascript" src="createjs/events/EventDispatcher.js"></script>
+        <script type="text/javascript" src="createjs/utils/IndexOf.js"></script>
+        <script type="text/javascript" src="easeljs/utils/UID.js"></script>
+        <script type="text/javascript" src="easeljs/utils/Ticker.js"></script>
+        <script type="text/javascript" src="easeljs/geom/Matrix2D.js"></script>
+        <script type="text/javascript" src="easeljs/geom/Point.js"></script>
+        <script type="text/javascript" src="easeljs/geom/Rectangle.js"></script>
+        <script type="text/javascript" src="easeljs/display/Shadow.js"></script>
+        <script type="text/javascript" src="easeljs/display/SpriteSheet.js"></script>
+        <script type="text/javascript" src="easeljs/display/Graphics.js"></script>
+        <script type="text/javascript" src="easeljs/display/DisplayObject.js"></script>
+        <script type="text/javascript" src="easeljs/display/Container.js"></script>
+        <script type="text/javascript" src="easeljs/display/Stage.js"></script>
+        <script type="text/javascript" src="easeljs/display/Bitmap.js"></script>
+        <script type="text/javascript" src="easeljs/display/Sprite.js"></script>
+        <script type="text/javascript" src="easeljs/display/BitmapAnimation.js"></script>
+        <script type="text/javascript" src="easeljs/display/BitmapText.js"></script>
+        <script type="text/javascript" src="easeljs/display/Shape.js"></script>
+        <script type="text/javascript" src="easeljs/display/Text.js"></script>
+        <script type="text/javascript" src="easeljs/display/DOMElement.js"></script>
+        <script type="text/javascript" src="easeljs/events/MouseEvent.js"></script>
+        <script type="text/javascript" src="easeljs/filters/Filter.js"></script>
+        <script type="text/javascript" src="easeljs/ui/ButtonHelper.js"></script>
+        <script type="text/javascript" src="easeljs/ui/Touch.js"></script>
+        <script type="text/javascript" src="easeljs/utils/SpriteSheetUtils.js"></script>
+        <script type="text/javascript" src="easeljs/utils/SpriteSheetBuilder.js"></script>
+        
+        <script type="text/javascript">
+            var canvas, context, stage,
+                Points = [],
+                cameraPosition = new Vector3(0, 0, 700),
+                distance = 450,
+                ppoints,
+                alpha = 0,
+                i, point,
+                center = new Vector3(0, 0, 0),
+                radius = 350;
+                
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            
+           
+            
+            for (i = 0; i < 500; i++) {
+               point = generatePointOnBall(center, radius);
+            //    point = generatePointOnBall1(radius);
+                if (point) {
+                    Points.push(point);
+                }
+            }
+            ppoints = projection(Points, cameraPosition, distance);
+            
+            stage = new createjs.Stage(canvas);
+             //使坐标变换到中心， y轴向上
+            stage.setTransform(canvas.width / 2, canvas.height / 2, 1, -1);
+          
+            generateStars(ppoints);
+            
+            createjs.Ticker.setFPS(25);
+            createjs.Ticker.addEventListener("tick", handleTick);
+
+            function handleTick() {
+                alpha += 20 * Math.PI / 180 / 25;
+                var i = 0, len = 0,star, point;
+                for (i=0,len=Points.length; i<len; i++) {
+                    point = Points[i];
+                    ppoints[i] = point.clone().sub(center).rotate(alpha, "y").add(center);
+                }
+                ppoints =  projection(ppoints, cameraPosition, distance);
+                for (i=0,len=ppoints.length; i<len; i++) {
+                    point = ppoints[i];
+                    star = stage.getChildAt(i);
+                    updateStar(star, point);
+                }
+                stage.update();
+            }
+            
+            //points 为投影后的点
+            function generateStars(points) {
+                var i = 0, len = 0,
+                star, point;
+                for (i=0, len = points.length; i < len ; i++) {
+                    point = points[i];
+                    star =new createjs.Bitmap("star.png");
+                    updateStar(star, point);
+                    stage.addChild(star);
+                }
+            }
+            
+            function updateStar(star, point) {
+                star.x = point.x;
+                star.y = point.y;
+                star.scaleX = star.scaleY = distance / Math.abs(cameraPosition.z - point.z) / 1.5;
+                if (point.z > 100) {
+                    star.alpha = 1; 
+                }else if (point.z < -100) {
+                    star.alpha = 0.3;
+                }else {
+                    star.alpha = 0.6;
+                }
+            }
+            
+            
+            function projection(points, cameraPosition, distance) {
+                var i, len = points.length, result = [], point;
+                for (i = 0; i < len; i++) {
+                    point = points[i].clone();
+                    point.x *= distance / Math.abs(cameraPosition.z - point.z);
+                    point.y *= distance / Math.abs(cameraPosition.z - point.z);
+                    result.push(point);
+                }
+                return result;
+            }
+           
+           function generatePointOnBall(center, radius) {
+                //alpha是球心到球面向量与Z轴夹角[0,PI]，beta是向量投影到X-Y平面与X轴的夹角[0,2PI]
+                var alpha = 0,
+                beta = 0,
+                point = new Vector3();
+                
+                alpha = Math.random() * Math.PI; 
+                beta = Math.random() * Math.PI * 2; 
+                point.x = center.x + radius * Math.sin(alpha) * Math.cos(beta);
+                point.y = center.y + radius * Math.sin(alpha) * Math.sin(beta);
+                point.z = center.z + radius * Math.cos(alpha);
+                
+                return point;
+           }
+           
+            function generatePointOnBall1 (r) {
+                var xTemp = getRandomNumber(-r, r);
+                var yTemp = getRandomNumber(-r, r);
+                j = Math.random() - 0.5;
+                if (xTemp * xTemp + yTemp * yTemp <= r * r) {
+                    var zTemp = j/Math.abs(j) * Math.sqrt(Math.abs(r * r - xTemp * xTemp - yTemp * yTemp));
+                    return new Vector3(xTemp, yTemp, zTemp);
+                }
+            }
+            
+            function getRandomNumber(min, max) {
+                return (min + Math.floor(Math.random() * (max - min + 1)))
+            }
+
+        </script>
+    </body>
+</html>

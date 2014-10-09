@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var obj = {};
+	obj.name = "lily";
+	obj.age = 12;
+	Object.prototype.attr = "ss";
+	for(var o in obj){
+		//if(obj.hasOwnProperty(o)){  
+		if(Object.prototype.hasOwnProperty.call(obj,o)){
+			console.log(o+"-->"+obj[o]);
+		}
+	}
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

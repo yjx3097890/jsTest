@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8" />
+ <title>Widgets</title>
+</head>
+<body>
+<form method="post" action="/widgets/add"  enctype="application/x-www-form-urlencoded">
+ <p>Widget name: <input type="text" name="wname" id="wname" size="25" required/></p>
+ <p>Widget Price: <input type="text" pattern="^\$?([0-9]{1,3},([0-9]{3},)*[0-9]{3}|[0-9]+)(.[0-9][0-9])?$"
+name="wprice" id="wprice" size="25" required/></p>
+ <p>Widget Description: <br /><textarea name="wdesc" id="wdesc" cols="20" rows="5">No Description</textarea>
+ <p>
+ <input type="submit" name="submit" id="submit" value="Submit"/>
+ <input type="reset" name="reset" id="reset" value="Reset"/>
+ </p>
+ </form>
+ <h3>===============================================</h3>
+<form method="post" action="/widgets/1/update?_method=put"  enctype="application/x-www-form-urlencoded">
+ <p>Widget name: <input type="text" name="wname" id="wname" size="25" value="My widget" required/></p>
+ <p>Widget Price: <input type="text" pattern="^\$?([0-9]{1,3},([0-9]{3},)*[0-9]{3}|[0-9]+)(.[0-9][0-9])?$"
+name="wprice" id="wprice" size="25" value='100.00' required/></p>
+ <p>Widget Description: <br /><textarea name="wdesc" id="wdesc" cols="20" rows="5" >beyond price</textarea>
+ <p>
+ <input type="submit" name="submit" id="submit" value="Submit"/>
+ <input type="reset" name="reset" id="reset" value="Reset"/>
+ </p>
+ </form>
+ </body>
+  <h3>===============================================</h3>
+  <p>Are you sure you want to delete Widget 1?</p>
+<form method="post" action="/widgets/1/delete?_method=delete"
+ enctype="application/x-www-form-urlencoded">
+ <!--<input type="hidden" value="delete" name="_method" />
+ -->
+ <p>
+ <input type="submit" name="submit" id="submit" value="Delete Widget 1"/>
+ </p>
+</form>

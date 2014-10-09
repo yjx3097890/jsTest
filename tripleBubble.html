@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+</head>
+<body>
+<svg width="360" height="180">
+<circle class="little" cx="300" cy="135" r="12"></circle>
+<circle class="little" cx="180" cy="45" r="12"></circle>
+<circle class="little" cx="60" cy="90" r="12"></circle>
+</svg>
+
+<script type="text/javascript">
+var svg = d3.select("svg");
+var circles=svg.selectAll("circle");
+circles.style("fill","steelblue");
+//circles.attr("cy",90);
+circles.attr("cx",function(d,i){
+	console.log(i);
+	return Math.random()*300;
+});
+circles.attr("r",20);
+</script>
+
+
+</body>
+</html>

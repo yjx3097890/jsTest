@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	Function.prototype.method = function (name, fn) {
+		this.prototype[name] = fn;
+		return this;
+	};
+	
+	var Person = function (name) {
+		this.name = name;
+	}.method("getName", function () {
+	     return this.name;
+	}).method("setName", function (name) {
+		this.name = name ;
+		return this;
+	});
+	var p = new Person("lily");
+	console.log(p.getName());
+	console.log(p.setName("wangba.").getName());
+	
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

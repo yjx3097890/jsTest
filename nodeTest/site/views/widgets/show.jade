@@ -1,0 +1,14 @@
+doctype html
+html
+	head
+		title= title
+	body
+		h1 #{title} #{widget.name}
+		ul 
+			li SN: #{widget.sn}
+			li Name: #{widget.name}
+			li Price: #{widget.price}
+			li Desc: #{widget.description}
+		form(action='./#{widget.sn}/delete?_method=delete' method='post')
+			input(type='submit' value='删除')
+		

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+</head>
+<body>
+<script type="text/javascript">
+	function SandBox() {
+		var args = Array.prototype.slice.call(arguments, 0),  //少写了call
+			callback = args.pop(),
+		//	modules = (args[0] && args[0] instanceof Array) ? args[0]: args,
+			modules = (args[0] && typeof args[0] === "string") ? args : args[0],
+			i;
+		//强制new调用
+		if (!(this instanceof SandBox)) {
+			return new SandBox(modules, callback);
+		}
+		//想对象添加属性
+		this.a = 1;
+		this.b = 2;
+		//向this添加模块
+		//不指定或*表示所有模块
+	/**	if (modules.length === 0 || modules[0] === "*") {
+			modules = [];
+			for (i in SandBox.modules) {
+				if (SandBox.modules.hasOwnProperty(i)){
+					modules.push(i);
+				}
+			}
+		}
+		*/
+		if (!modules || modules[0] === '*') {
+			modules = [];
+			for (i in SandBox.modules) {
+				if (SandBox.modules.hasOwnProperty(i)) {
+					modules.push(i);
+				}
+			}
+		}
+		//添加需求模块
+		for (i = 0; i < modules.length; i++) {
+			SandBox.modules[modules[i]](this);
+		}
+		//调用callback
+		callback(this);
+	}
+	
+	SandBox.prototype = {
+		name: "My Application",
+		constructor: SandBox,
+		version: "1.0",
+		getName: function () {
+			return this.name;
+		}
+	};
+	//为SandBox添加模块及实现
+	SandBox.modules = {};
+	SandBox.modules.dom = function (box) {
+		box.getElement = function () {};
+		box.foo = "bar";
+	};
+	SandBox.modules.event = function (box) {
+		// box.constructor.prototype.m = "mmm";
+		box.attachEvent = function () {};
+		box.dettachEvent = function () {};
+	}
+	
+	
+	SandBox(function (box) {
+		console.dir(box);
+	});
+	SandBox("*", function (box) {
+		console.dir(box);
+	});
+	SandBox("dom", function (box) {
+		console.dir(box);
+	});
+	SandBox(["dom"], function (box) {
+		console.dir(box);
+	});
+</script>
+
+
+</body>
+</html>

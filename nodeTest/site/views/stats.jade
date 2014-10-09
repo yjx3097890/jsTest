@@ -1,0 +1,17 @@
+extends layout
+
+block content
+	h1= title
+	h2 用户ip
+	ul
+		each ip in ips
+			li= ip
+	table
+		caption 用户请求统计
+		tr
+			th path
+			th times
+		each url,times in urls
+			tr
+				td= url
+				td= times

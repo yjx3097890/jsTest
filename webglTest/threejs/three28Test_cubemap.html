@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - materials - cube refraction [Lucy]</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#000;
+				color:#fff;
+				padding:0;
+				margin:0;
+				overflow:hidden;
+				font-family:georgia;
+				text-align:center;
+			}
+
+			canvas { pointer-events:none; z-index:10; }
+
+			
+			#oldie { margin-top:15em !important }
+		</style>
+	</head>
+
+	<body>
+	
+
+		<script src="three.js"></script>
+
+		<script src="BinaryLoader.js"></script>
+ <script type="text/javascript" src="TrackballControls.js"></script>
+	
+
+		<script>
+
+			var container;
+
+			var camera, scene, renderer;
+			var cameraCube, sceneCube, cubeTarget;
+
+			var mesh, zmesh, geometry;
+
+			var loader , controls;
+
+			var directionalLight;
+
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement('div');
+				document.body.appendChild(container);
+
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 100000 );
+				camera.position.z = 2000;
+
+				cameraCube = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 100000 );
+
+				scene = new THREE.Scene();
+				sceneCube = new THREE.Scene();
+
+                controls = cameraControl(camera);
+				// LIGHTS
+
+				var ambient = new THREE.AmbientLight( 0xffffff );
+				scene.add( ambient );
+
+				// material samples
+
+				var r = "beach/";
+
+				var urls = [ r + "nx.jpg", r + "px.jpg",
+							 r + "py.jpg",  r + "py.jpg",
+							 r + "pz.jpg", r + "nz.jpg" ];
+
+				var textureCube = THREE.ImageUtils.loadTextureCube( urls, new THREE.CubeRefractionMapping() );
+
+			
+
+				// Skybox
+
+				var shader = THREE.ShaderLib[ "cube" ];
+				shader.uniforms[ "tCube" ].value = textureCube;
+
+				var material = new THREE.ShaderMaterial( {
+
+					fragmentShader: shader.fragmentShader,
+					vertexShader: shader.vertexShader,
+					uniforms: shader.uniforms,
+					side: THREE.BackSide
+
+				} ),
+
+				mesh = new THREE.Mesh( new THREE.CubeGeometry( 50000, 50000, 50000 ), material );
+				sceneCube.add( mesh );
+
+				//
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.autoClear = false;
+				container.appendChild( renderer.domElement );
+
+                
+                //女神lucy
+         //       var cubeMaterial3 = new THREE.MeshBasicMaterial( { color: 0xccddff, envMap: textureCube, refractionRatio: 0.98, reflectivity:0.9 } );
+		//		var cubeMaterial2 = new THREE.MeshBasicMaterial( { color: 0xccfffd, envMap: textureCube, refractionRatio: 0.985 } );
+		//		var cubeMaterial1 = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube, refractionRatio: 0.98 } )
+                
+       //         loader = new THREE.BinaryLoader( true );
+		//		document.body.appendChild( loader.statusDomElement );
+
+		//		loader.load( 'lucy/Lucy100k_bin.js', function( geometry ) { createScene( geometry, cubeMaterial1, cubeMaterial2, cubeMaterial3 ) } );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2,
+				windowHalfY = window.innerHeight / 2,
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				cameraCube.aspect = window.innerWidth / window.innerHeight;
+				cameraCube.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function createScene( geometry, m1, m2, m3 ) {
+
+				var s = 1.5, z = - 1000;
+
+				var mesh = new THREE.Mesh( geometry, m1 );
+				mesh.position.z = z;
+				mesh.scale.x = mesh.scale.y = mesh.scale.z = s;
+				scene.add( mesh );
+
+				var mesh = new THREE.Mesh( geometry, m2 );
+				mesh.position.x = - 900;
+				mesh.position.z = z;
+				mesh.scale.x = mesh.scale.y = mesh.scale.z = s;
+				scene.add( mesh );
+
+				var mesh = new THREE.Mesh( geometry, m3 );
+				mesh.position.x = 900;
+				mesh.position.z = z;
+				mesh.scale.x = mesh.scale.y = mesh.scale.z = s;
+				scene.add( mesh );
+
+				loader.statusDomElement.style.display = "none";
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				
+                controls.update();
+				cameraCube.rotation.copy( camera.rotation );
+				cameraCube.position.copy( camera.position );
+                 
+				renderer.clear();
+				renderer.render( sceneCube, cameraCube );
+	//			renderer.render( scene, camera );
+
+			}
+            
+               function cameraControl(camera){
+                   var controls = new THREE.TrackballControls( camera );
+                
+                    //旋转速度
+                    controls.rotateSpeed = 1.0;
+                    //变焦速度
+                    controls.zoomSpeed = 1.2;
+                    //平移速度
+                    controls.panSpeed = 0.8;
+                    //是否不变焦
+                    controls.noZoom = false;
+                    //是否不平移
+                    controls.noPan = true;
+                    //可能是惯性 true没有惯性
+                    controls.staticMoving = false;
+                    //动态阻尼系数 就是灵敏度
+                    controls.dynamicDampingFactor = 0.3;
+                    
+                    return controls;
+         }
+
+		</script>
+
+	</body>
+</html>

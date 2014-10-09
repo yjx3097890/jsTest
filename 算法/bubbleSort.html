@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script text="javascript">
+function bubble(array){
+	var i,j,len=array.length;
+	for(i=0;i<len;i++){
+		for(j=len;j>i;j--){
+			if(array[j]<array[j-1]){
+				swap(array,j,j-1);
+			}
+		}
+	}
+}
+function swap(array,k,l){
+	var temp=array[k];
+	array[k]=array[l];
+	array[l]=temp;
+}
+
+var test = [3,1,6,8,5,3,9,54,2];
+	bubble(test);
+	console.log(test);
+</script>
+
+</body>
+</html>

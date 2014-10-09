@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+</head>
+<body>
+<p>XX</p>
+<p></p>
+<p>XX</p>
+<p></p>
+
+
+<svg></svg>
+<script type="text/javascript">
+var p = d3.select("body").selectAll("p")
+    .data([4, 8, 15, 16, 23, 42]).enter().append("div")
+    .text(String);
+	
+	//p.enter().append("p");
+	
+	//p.exit().remove();
+	
+	d3.select("body").transition().duration(1000).delay(1500)
+    .style("background-color", "yellow");
+	
+	d3.select("svg").append("circle")
+    .attr("cx", 50)
+    .attr("cy", 50)
+    .attr("r", 50);
+</script>
+
+
+</body>
+</html>

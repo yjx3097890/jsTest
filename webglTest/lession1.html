@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>lession1</title>
+<script type="text/javascript" src="Oak3D_v_0_5.js"></script>
+
+<!--着色器的代码 ,GLSL语言-->
+<script id="shader-fs" type="x-shader/x-fragment">
+ 
+    precision mediump float;  //告诉显卡我们需要精确到浮点值的数字运算
+ 
+ 
+    void main(void) {
+	   //gl_FragColor表示绘图时使用的颜色
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);  //指定绘制物体的时候要用白色
+    }
+</script>
+ <!--顶点着色器，让显卡对顶点做任何想要做的事 -->
+<script id="shader-vs" type="x-shader/x-vertex">
+		//向顶点着色其中传入顶点信息
+    attribute vec3 aVertexPosition;
+ 
+    uniform mat4 uMVMatrix;  //uniform变量非常有用，因为你可以在着色器之外访问它们，甚至在它们的容器program之外
+    uniform mat4 uPMatrix;
+	//为每个顶点调用着色器，并且把顶点作为aVertecPosition传递给着色器代码。
+	//顶点位置与模型视图矩阵和投影矩阵相乘，然后把最终顶点位置作为结果输出。
+    void main(void) {
+		// gl_Position接受一个四维数组顶点信息 ，uPMatrix  uMVMatrix 相当于变换矩阵
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    }
+</script>
+
+</head>
+<body onload="webglStart();">
+<canvas id="canvas1" style="" width="500" height = "500"></canvas>
+
+<script type="text/javascript">
+	var triangleVertexPositionBuffer,
+		squareVertexPositionBuffer,
+		gl, 
+		mvMatrix,  //模型视图矩阵
+        pMatrix,   //投影矩阵
+		shaderProgram;
+
+    function initGL(canvas) {
+        try {
+            gl = canvas.getContext("experimental-webgl");
+            gl.viewportWidth = canvas.width;
+            gl.viewportHeight = canvas.height;
+        } catch (e) {
+        }
+        if (!gl) {
+            alert("Could not initialise WebGL, sorry :-(");
+        }
+    }
+	
+	function initShaders() {
+        var fragmentShader = getShader(gl, "shader-fs"); //片元着色器
+        var vertexShader = getShader(gl, "shader-vs");  //顶点着色器
+ 
+		
+        shaderProgram = gl.createProgram();    //Program是系统中原生于WebGL里的二进制码，你可以把它看作是一种在显卡中运行指定指令的方法。
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+		//把若干着色器组合捆绑到一个program中，每个着色器都可以看做一段program中的代码。
+		//特别是每个program只可以储存一个片元着色器和一个顶点着色器。    
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+ 
+		//通知webgl使用使用program
+        gl.useProgram(shaderProgram);
+		
+		//getAttribLocation：返回attribute变量的地址
+		shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+        gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);  //告诉WebGL我们会用一个数组来为属性赋值。
+		
+		//getUniformLocation：返回uniform变量在内存中的地址
+		 shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix"); //提取出了uPMatrix的地址
+        shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+	}
+	
+	/**HTML页面中寻找一个id能够对应传递进去的参数的元素，取出它的内容，建立一个片元着色器或一个顶点着色器，然后传递到WebGL端编译成可以在显卡中运行的形式。代码会再来处理发生的错误。
+	*/
+	 function getShader(gl, id) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) {
+            return null;
+        }
+ 
+        var str = "";
+        var k = shaderScript.firstChild;
+        while (k) {
+            if (k.nodeType == 3) {
+                str += k.textContent;
+            }
+            k = k.nextSibling;
+        }
+ 
+        var shader;
+        if (shaderScript.type == "x-shader/x-fragment") {
+		//createShader创建着色器对象
+            shader = gl.createShader(gl.FRAGMENT_SHADER);
+        } else if (shaderScript.type == "x-shader/x-vertex") {
+            shader = gl.createShader(gl.VERTEX_SHADER);
+        } else {
+            return null;
+        }
+ 
+		//shaderSource：传入着色器内容str
+        gl.shaderSource(shader, str);
+		//compileShader：编译着色器
+        gl.compileShader(shader);
+		
+		//getShaderParameter：取得着色器状态 ，还有gl.LINK_STATUS
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			//getShaderInfoLog:传入调色器，取得相应的错误消息
+            alert(gl.getShaderInfoLog(shader));
+            return null;
+        }
+ 
+        return shader;
+    }
+	
+	function webglStart() {
+		var canvas = document.getElementById("canvas1");
+		
+		initGL(canvas);
+        initShaders();
+        initBuffers();
+ 
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+ 
+		console.log(gl.getError());
+ 
+        drawScene();
+	}
+	
+	function initBuffers() {
+		//createBuffer创建webgl缓冲区
+		triangleVertexPositionBuffer = gl.createBuffer();  //数组对象位于显卡中
+		//把triangleVertexPositionBuffer设置为webgl上下文的当前缓冲区
+		gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+		 var vertices = [
+             0.0,  1.0,  0.0,
+            -1.0, -1.0,  0.0,
+             1.0, -1.0,  0.0
+        ];
+		//bufferData把数据存入缓冲区，一般都用Float32Array保存顶点信息 ，最后的参数用于指定缓冲区的方式：
+		//gl.STATIC_DRAW :数据加载一次，多次绘图使用；gl.STREAM_DRAW：数据加载一次，在几次绘图中使用；gl.DYNAMIC_DRAW：数据动态改变，在多次绘图中使用
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+		triangleVertexPositionBuffer.itemSize = 3;  //每个顶点由3个数字组成
+		triangleVertexPositionBuffer.numItems = 3;  //3个不同的顶点位置
+		
+		squareVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+        vertices = [
+             1.0,  1.0,  0.0,
+            -1.0,  1.0,  0.0,
+             1.0, -1.0,  0.0,
+            -1.0, -1.0,  0.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        squareVertexPositionBuffer.itemSize = 3;
+        squareVertexPositionBuffer.numItems = 4;
+    }
+	
+	function drawScene() {
+		//定义视口  参数：x坐标、y坐标、宽度、高度 （注意：视口坐标(0,0)在canvas的左下角，画图时的坐标(0,0)在canvas中间）
+		gl.viewport(100, 100, gl.viewportWidth, gl.viewportHeight);
+		//清除缓冲区
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		/**在默认的情况下，WebGL会把近处的物体和远处的物体用同样的尺寸绘制（在3D图形学中被称为“正射投影”）。为了使远处的物体看起来要小一些，我们需要明确告诉WebGL我们使用的透视。对于这个场景，我们告诉WebGL我们的（垂直）视野是45°、canvas的宽高比以及从我们的视点看到的最近距离是0.1个单位，最远距离是100个单位。
+		*/
+		pMatrix = okMat4Proj(90, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);   //透视投影	/**首先从单位矩阵开始——这个矩阵意味着不进行任何变换——然后乘以你将要进行的第一个变换的矩阵，再乘以你将要进行的第二个变换的矩阵，然后第三个、第四个……最后乘积所得到的矩阵代表了所有你进行过的变换。用来表示当前位移/旋转状态的矩阵我们称之为“模型视图矩阵”（model-view matrix） */
+		mvMatrix = okMat4Trans(-1.5, 0.0, -7.0); //用okMat4Trans函数生成了一个位移矩阵，然后赋值给mvMatrix。位移的起点就是3D空间的中心
+		gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer); 
+		//vertexAttribPointer：为attribute变量赋值 ；false表示坐标不是标准化的，第五个参数是步长值，表示取得下个值时，需要跳过多少个元素；最后一个是起点偏移量，表示从哪个开始
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0); //			告诉WebGL这个数组对象中的值是用来表示顶点位置	
+		setMatrixUniforms(); 
+		
+		//drawArrays():第一个参数是常量表示要绘制的形状方法，第二个参数为数组缓冲区中的起始索引 ；第三个参数接收数组缓冲区中要绘制的顶点数
+		gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);//告诉canvas用之前我给你的顶点数组来绘制一个三角形，顶点从item 0开始一直到numItems的值
+		
+		mvMatrix = okMat4Trans(1.5, 0.0, -7.0);
+		gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		setMatrixUniforms();
+		gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+		
+	}
+	//把uMVMatrix、uPMatrix赋值给模型视图矩阵和投影矩阵
+	function setMatrixUniforms() {
+	//基于uniform变量的地址，为他赋值，false表示坐标不是标准化的
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix.toArray());
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix.toArray());
+    }
+</script>
+</body>
+</html>

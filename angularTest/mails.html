@@ -1,0 +1,54 @@
+<html ng-app="AMail">
+	<head>
+		<script type="text/javascript" src="angular/angular.js"></script>
+		<script type="text/javascript" src="angular/angular-route.js"></script>
+		<script type="text/javascript">
+			aMail = angular.module('AMail', ['ngRoute']);
+
+			// Some fake emails
+			var mails = [ {
+			id: 0, sender: ' j ean@somecompany. com' , subject : ' Hi t here, ol d f ri end' ,
+			date: ' Dec 7, 2013 12: 32: 00' , recipients: [ ' greg@somecompany. com' ] ,
+			message: ' Hey, we shoul d get t oget her f or l unch somet i me and cat ch up. '
+			+' There are many t hi ngs we shoul d col l aborat e on t hi s year. '
+			}, {
+			id: 1, sender: ' mari a@somecompany. com' ,
+			subject : ' Where di d you l eave my l apt op?' ,
+			date: ' Dec 7, 2013 8: 15: 12' , recipients: [ ' greg@somecompany. com' ] ,
+			message: ' I t hought you were goi ng t o put i t i n my desk drawer. '
+			+' But i t does not seem t o be t here. '
+			}, {
+			id: 2, sender: ' bi l l @somecompany. com' , subject : ' Lost pyt hon' ,
+			date: ' Dec 6, 2013 20: 35: 02' , recipients: [ ' greg@somecompany. com' ] ,
+			message: 'Nobody pani c, but my pet pyt hon i s mi ssi ng f rom her cage. '
+			+' She doesnot move t oo f ast , so j ust cal l me i f you see her. '
+			}];
+			
+
+            aMail.config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider)  {
+                $routeProvider.when('/', {
+                    controller: 'ListController',
+                    templateUrl: 'angularTest/mails-list.html'
+                }).when('/view/:id',{
+                    controller: 'DetailController',
+                    templateUrl: 'angularTest/mails-detail.html'
+                }).otherwise({
+                    redirectTo: '/'
+                });
+
+                $locationProvider.html5Mode(true);
+            }]);
+
+            aMail.controller('ListController', function ($scope) {
+                $scope.mails = mails;
+            });
+            aMail.controller('DetailController', function ($scope, $routeParam) {
+                $scope.mail = mails[$routeParam.id];
+            });
+		</script>
+	</head>
+	<body>
+		<h1>A mail</h1>
+		<div ng-view></div>
+	</body>
+</html>

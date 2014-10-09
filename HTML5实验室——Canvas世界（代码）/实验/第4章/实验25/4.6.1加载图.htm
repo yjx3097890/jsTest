@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+</head>
+<body>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+<canvas
+id="myCanvas" width="600" height="500">Your browser does not support the canvas element. </canvas>
+  
+    <script src="../../script/Vector2.js" type="text/javascript"></script>
+<script
+type="text/javascript">
+
+var canvas = document.getElementById("myCanvas");
+var cxt = canvas.getContext("2d");
+var cyc = 100;
+cxt.fillStyle = "#6BC6FF";
+
+
+
+ var loadingPosition = new Vector2(200, 200);
+var loadingRadius = 50;
+var intervalAngle = 45;
+var bigCircleRadius = 8;
+var bigCirclePosition = new Vector2(200, 150);
+function drawLoading() {
+    for (var i = 0; i < 11; i++) {
+        cxt.beginPath();
+        cxt.arc(bigCirclePosition.x, bigCirclePosition.y, bigCircleRadius, 0, Math.PI * 2, true);
+        cxt.closePath();
+        cxt.fill();
+        bigCircleRadius -= 1;
+        bigCirclePosition.rotateSelf(loadingPosition, 30);
+    }
+}
+
+
+var rotateAsync = eval(Jscex.compile("async", function () {
+    while (true) {
+        bigCircleRadius = 10;
+        cxt.clearRect(0, 0, canvas.width, canvas.height);
+        drawLoading();
+        $await(Jscex.Async.sleep(cyc));
+    }
+}))
+rotateAsync().start();
+</script>
+</body>
+</html>

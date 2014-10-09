@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+</head>
+<body>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+<canvas id="myCanvas" width="600" height="500">Your browser does not support the canvas element. </canvas><script
+type="text/javascript">
+
+        var canvas = document.getElementById("myCanvas");
+        var cxt = canvas.getContext("2d");
+        var ball = {
+            position: { x: 100, y: 100 },
+            r: 15,
+            vx: 190,
+            vy: 110
+        };
+        var cyc = 10;
+        var moveAsync = eval(Jscex.compile("async", function () {
+            while (true) {
+                    cxt.fillStyle = "rgba(0, 0, 0, .3)";
+                    cxt.fillRect(0, 0, canvas.width, canvas.height);
+                    cxt.fillStyle = "#fff";
+                    cxt.beginPath();
+                    cxt.arc(ball.position.x, ball.position.y, ball.r, 0, Math.PI * 2, true);
+                    cxt.closePath();
+                    cxt.fill();
+                    ball.position.x += ball.vx * cyc / 1000;
+                    ball.position.y += ball.vy * cyc / 1000;
+                    $await(Jscex.Async.sleep(cyc));
+            }
+        }))
+        moveAsync().start();
+</script>
+</body>
+</html>

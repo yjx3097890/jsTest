@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html >
+	<head>
+        <meta charset="utf-8" />
+		<title>heart</title>
+        <style type="text/css">
+            body {
+                background-color: #000;
+            }
+        </style>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3"></canvas>
+       <script type="text/javascript" src="wind-all-0.7.3.js"></script>
+       <script type="text/javascript" src="Vector2.js"></script>
+       <script type="text/javascript" src="heart.js"></script>
+        <script type="text/javascript">
+
+
+        </script>
+        <script type="text/javascript">
+            var canvas, context;
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d"),
+            center = new Vector2(canvas.width / 2, canvas.height / 2);
+
+           var heart1 = new Heart(new Vector2(200, canvas.height / 2), 40),
+            heart2 = new Heart(new Vector2(600, canvas.height / 2 + 90), 12);
+            heart3 = new Heart(new Vector2(1000, canvas.height / 2), 6),
+
+            context.lineWidth = 1;
+            heart1.draw(context, "#ffff00", "Descartes");
+            heart2.draw(context, "#00ffff", "Pop");
+            heart3.draw(context, "#ff0000");
+
+            function random(min, max) {
+                return Math.random() * (max - min)+ min;
+            }
+
+            //随即颜色，但不为黑
+            function randomColor() {
+                var c = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"],
+                        color = "#",
+                        i = 0,
+                        random = 0;
+                for(i = 0;i < 6; i++){
+                    random =  Math.random() * 16;
+                    color += c[Math.floor(random)];
+                }
+                if (color == "#000000") {
+                    color = randomColor();
+                }
+                return color;
+            }
+            
+        </script>
+    </body>
+</html>

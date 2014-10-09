@@ -1,0 +1,49 @@
+﻿<!DOCTYPE HTML >
+ <html>
+     <head>
+         <title>在同一个页面中加载多个不同的jQuery版本</title>
+         <!-- 从谷歌服务器加载jQuery最新版本 -->
+         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+         <script type="text/javascript">
+             var jQuery_New = $.noConflict(true);
+         </script>
+         <!-- 加载jQuery1.6.2版本 -->
+         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+         <script type="text/javascript">
+             var jQuery_1_6_2 = $.noConflict(true);
+         </script>
+         <!-- 加载jQuery1.5.2版本 -->
+         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+         <script type="text/javascript">
+             var jQuery_1_5_2 = $.noConflict(true);
+         </script>
+         <!-- 加载jQuery1.4.2版本 -->
+         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+         <script type="text/javascript">
+             var jQuery_1_4_2 = $.noConflict(true);
+         </script>
+         <!-- 加载jQuery1.3.2版本 -->
+         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+         <script type="text/javascript">
+             var jQuery_1_3_2 = $.noConflict(true);
+         </script>
+         <script type="text/javascript">
+             alert(jQuery_New.fn.jquery);
+             alert(jQuery_1_6_2.fn.jquery);
+             alert(jQuery_1_5_2.fn.jquery);
+             alert(jQuery_1_4_2.fn.jquery);
+             alert(jQuery_1_3_2.fn.jquery);
+            // alert($.fn.jquery);
+             jQuery_New(function($){$('<p>我是最新的'+$.fn.jquery+'版本添加进来的。</p>').appendTo('body');
+			 });
+             jQuery_1_6_2(function($){$('<p>我是'+$.fn.jquery+'版本添加进来的。</p>').appendTo('body');});
+             jQuery_1_5_2(function($){$('<p>我是'+$.fn.jquery+'版本添加进来的。</p>').appendTo('body');});
+             jQuery_1_4_2(function($){$('<p>我是'+$.fn.jquery+'版本添加进来的。</p>').appendTo('body');});
+             jQuery_1_3_2(function($){$('<p>我是'+$.fn.jquery+'版本添加进来的。</p>').appendTo('body');});
+         </script>
+     </head>
+     <body>
+         在同一个页面中加载多个不同的jQuery版本
+         <br>
+     </body>
+ </html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+	var mergeArray = function (A, B) {
+        var i=0, j=0, k=0, result = [];
+        while (A[i] && B[j]) {
+            a = A[i];
+            b = B[j];
+            if ( a < b ) {
+                result[k] = a;
+                i++;
+            } else {
+                result[k] = b;
+                j++;
+            }
+            k++;
+        }
+        while (A[i]) {
+            result[k] = A[i];
+            k++;
+            i++;
+        }
+        while (B[j]) {
+            result[k] = B[j];
+            k++;
+            j++;
+        }
+        return result;
+    };
+    var mergeSort = function (array, start, end) {
+        var start = start || 0, end = (typeof end === "undefined")? array.length - 1 : end, mid = Math.floor((start + end)/2), arrA, arrB;
+        if ( start < end ) {
+            arrA = mergeSort(array, start, mid);
+            arrB = mergeSort(array, mid+1, end);
+        }else {
+            return array.slice(start, end+1);
+        }
+        return mergeArray(arrA, arrB);
+        
+    }
+	var test=[2,5,3,2,6,7,5,4,9,22];
+	
+	console.log(mergeSort(test));
+</script>
+
+</body>
+</html>

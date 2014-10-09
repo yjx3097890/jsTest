@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var Gadget = (function () {
+		var count = 0;
+		var constructor = function(){
+			count++;
+			var temp = count;
+			this.getIndex = function () {
+				console.log(temp);
+			};
+		};
+		return constructor; 
+	})();
+	
+	var g1 = new Gadget();
+	var g2 = new Gadget();
+	g2.getIndex();
+	g1.getIndex();
+	
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

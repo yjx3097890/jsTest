@@ -1,0 +1,6 @@
+<div><strong>Subject:</strong>{{mail.subject}}</div>
+<div><strong>Sender:</strong>{{mail.sender}}</div>
+<div><strong>Date:</strong>{{mail.date}}</div>
+<div><strong>To:</strong><span ng-repeat='recipient in mail.recipients'>{{recipient}}</span></div>
+<div>{{mail.message}}</div>
+<a href="#/">back to list</a>

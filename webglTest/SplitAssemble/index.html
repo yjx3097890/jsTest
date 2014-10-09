@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>SplitAssemble(拆分-组装)</title>
+<style>
+*{padding:0px; margin:0px;}
+#objInfo{ position:absolute; left:20px; top:100px; z-index:10000; 
+	width:100px; height:160px; padding:10px; background: #333; color:#fff; border:1px solid #008000; opacity:.7;
+}
+/*批注对话框*/
+.tips{
+	width:300px; height:100px;  position:absolute; top:300px; left:100px; 
+	background:#fff; border-radius: 5px;   color:#555A57;  z-index: 1000;
+}
+.tips.__noselect{ user-select: none; -webkit-user-select: none; -moz-user-select: none; }
+.tips .tips_arraw{
+	width:30px; height: 30px; background:#fff;
+    position: absolute; bottom: -10px; left:5px;  z-index: 1;
+ 
+	transform: rotate(80deg) skew(28deg,28deg);
+	-o-transform: rotate(80deg) skew(28deg,28deg); 
+	-ms-transform: rotate(80deg) skew(28deg,28deg); 
+	-webkit-transform:rotate(80deg) skew(28deg,28deg);   
+}
+
+.tips_close{z-index: 3;}
+.tips_ok{position:absolute; right:20px; bottom:10px;}
+ 
+.cButton{display:block;  padding:5px 10px; border:1px solid #ccc; cursor:pointer; z-index: 1000; font-size: 11px;}
+.tips .tips_title{position:absolute; top:6px; height:20px; left:10px; right:20px;  font-size:19px; font-weight: bold; z-index:2;}
+.tips .tips_content{ position: absolute; left:10px; right:20px; top:33px; bottom:10px; font-size: 11px; z-index: 2; }
+</style>
+<script src="JS/three.min.js"></script>
+<script src="JS/3Dpreview.min.js"></script>
+<script src="JS/threeDragger.js"></script>
+<script src="JS/Tips.js"></script>
+ 
+</head>
+
+<body>
+	
+	<div id="box" style=" background:#666;">
+
+	
+		<div id="objInfo">
+			<p id="objInfoP" class="s sa"> </p>
+		</div>
+		
+		<input id="back" type="button" 
+			style="border:none; display: block; height:25px; width:50px; position:absolute; right:20px; bottom:10px; cursor:pointer; z-index:100;" 
+		value="组装" />
+		
+	</div>
+	
+</body>
+
+</html>
+
+
+
+<script>
+
+	THREE.Vector3.prototype.getLayerPosition = function(  camera, container ){
+		var pos = this.clone(), 
+			projector = new THREE.Projector();
+		container = container || window.document.body;
+		projector.projectVector( pos, camera );//从世界坐标系转换到屏幕坐标系
+		return  { x : (1+pos.x)*container.offsetWidth/2, y : (1-pos.y)*container.offsetHeight/2 };
+	}
+	
+
+	Preview.$.dom("#box").style.width = window.innerWidth + "px"; 
+	Preview.$.dom("#box").style.height = window.innerHeight + "px"; 
+	
+	
+	var $$ = Preview.$,
+		container = $$.dom("#box"),
+		
+	see = new Preview({ layout : container }),
+	
+	//提示信息框对象	
+	tip = new Tips({
+		container : container, title : "枪", content : "",
+		closeCall : null, okCall : null,
+		width : 250, height : 85,
+		okButton : null, closeButton : false
+	}).noSelect().hide();
+	
+
+	var objInfoDom = $$.dom("#objInfoP"),
+		objIntros = [ ],
+		objTipInfos = [ ],
+		positions = [];
+		
+ 
+	//camera, canvas, scene, controls, container， start
+	ThreeDragger.set( see.camera, see.renderer.domElement, see.scene, see.controls, container, true );
+	
+	//添加全局事件
+	ThreeDragger.AddDefaultEvent({ mouseenter:function(e, i, ins ){
+
+ 		objInfoDom.appendChild( document.createTextNode( objIntros[i] ) );
+ 		
+		this.__meshs[0].material.ambient.setRGB( .777, .777, .777 );
+
+		var p = ins.point.getLayerPosition( see.camera, see.renderer.domElement );
+		tip.setTitleContent( null, objIntros[i] ).moveTo(p.x, p.y).show();	
+	 
+	}, mouseleave:function( e ){
+		
+		objInfoDom.innerHTML = "";
+		
+		this.__meshs[0].material.ambient.setRGB( 0, 0, 0 );
+		tip.hide();
+ 
+	}, dragmove : function( e, i, p ){
+
+		tip.moveTo(e.clientX, e.clientY);
+		
+	}, dragend:function( e, i ){
+		//加入到运动队列中，第三个参数为true，表示以栈的形式存储
+		Smooth.add( this.position, positions[i], true );
+	 
+	}});
+	
+	
+	 
+ 	//所有模型载入完成后调用的回调函数
+ 	var loadComplate = function(){
+		//将载入的模型加入到事件侦测范围中，第二个参数表示同时开启拖拽功能
+		ThreeDragger.AddObject3D( see.objs.children, true );
+		see.camera.position.z = 3.3;
+		
+		for( var i = 0; i < ThreeDragger.Object3DCollection.length; i++ ){
+			//记录每个模型的初始位置，方便还原
+			positions.push( ThreeDragger.Object3DCollection[i].position.clone() );
+			//给每个模型设置一段介绍性的文字，可移到外部写
+			objIntros.push( "hello, i'm a part of the gun, my index is : "+ (i+1) );
+			
+		} 
+		
+		//组合按钮事件绑定
+		document.getElementById("back").addEventListener("click", function(){
+			//Start方法开始组合， 参数为动画时间
+			Smooth.start( 300 );
+			 
+		}, false);
+		
+	}
+	
+	
+	var name;
+	for(var i =1 ; i< 54; i++){
+		name = "uuu/polySurface" + i;
+		see.load({obj : name+".obj", mtl : name+".mtl", cover : false, onload : null});
+	}
+	
+	see.load({obj : "uuu/polySurface54.obj", mtl : "uuu/polySurface54.mtl", cover : false, onload : loadComplate });
+	
+	
+	
+	window.addEventListener("resize", onWindowResize, false );
+	
+	function onWindowResize() {
+		
+		container.style.width = window.innerWidth + "px"; 
+		container.style.height = window.innerHeight + "px"; 
+		
+		see.camera.aspect = window.innerWidth / window.innerHeight;
+		see.camera.updateProjectionMatrix();
+
+		see.renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+	
+
+	
+	see.animate();
+	
+
+</script>

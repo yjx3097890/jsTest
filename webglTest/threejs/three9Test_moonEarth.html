@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>
+			test
+		</title>
+		<script type="text/javascript" src="three.js" ></script>
+		<style type="text/css">
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+		
+	</head>
+	<body>
+	<script type="text/javascript" src="three.js" ></script>
+		<script type="text/javascript">
+			var camera, scene, renderer, container, moon, earth, mouseX = 0, mouseY = 0;
+			
+			init();
+			animate();
+			
+			function init() {
+				container = document.createElement( 'div' );
+				document.body.appendChild(container);
+				
+				//camera
+				camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+				camera.position.set(0, 0, 1000);
+				
+				scene = new THREE.Scene();
+				
+				//Material
+				var earthTexture = THREE.ImageUtils.loadTexture("earth.jpg");
+				earthTexture.wrapS = earthTexture.wrapT = THREE.ClampToEdgeWrapping;
+				earthTexture.anisotropy = 16;
+				
+				
+				var moonTexture = THREE.ImageUtils.loadTexture("moon.jpg");
+				moonTexture.wrapS = moonTexture.wrapT = THREE.ClampToEdgeWrapping;
+				moonTexture.anisotropy = 16;
+				
+				var bumpScale = 1,specular = 0x333333, shininess = 50,  shading = THREE.SmoothShading;
+				
+				
+				//	var material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				/**
+					color：颜色，十六进制整数，如果设定了color属性，整个材质将全部使用这种颜色。
+					map：映射，可以指向Three.Texture的实例对象。实际上，纹理就是一种映射，从一个[0,1][0,1]范围的二维坐标到颜色值的映射，过程就是从纹理图片的响应位置上取颜色。当然也有不依赖于图片的纹理，比如一些简单的三角函数的组合，将而为坐标转化为颜色，也能够成为纹理。这种纹理可以在表面上绘制复杂的图案。
+					lightMap，envMap，specularMap：字面的意思是光照映射，光谱映射等，可能用来服务于Three中的某些类型的着色器。
+					wireframe：如果设定为true，那么整个几何形状就显示为网格状的（即只显示边，不显示面）。
+					wireframeLinecap，wireframeLinewidth，wireframeLinejoin：采用wireframe模式时，控制网格的线段端点，线段宽度，线段交点等。
+					fog：显示材质的颜色是否会被全局的fog设定影响。
+					vertexColors：数组，每个元素都是一个Three.Color变量。如果设定了这个变量，那么这个数组的前3个或4个元素（视面的类型），就是面的端点的颜色。而在默认的片元着色器中，面上的颜色是由端点颜色内插而来的。
+					morphTarget：如果设置为true，那么就可以使用morphTarget模式（一种利用着色器来计算顶点位置的方法，可以高效地产生类似于windows98形变屏保模式的方法，在我的前面一片demo源码阅读笔记中有详细叙述）。
+				*/
+				
+				var ematerial = new THREE.MeshPhongMaterial({map: earthTexture, bumpMap: earthTexture, bumpScale: bumpScale, color: 0xffffff, ambient: 0x07ECFC, specular: specular, shininess: shininess, shading: shading });
+				
+				var mmaterial = new THREE.MeshLambertMaterial({map: moonTexture,bumpMap: moonTexture,color: 0xffffff, ambient: 0x777777, shading: shading });
+				/**
+					color：主颜色，当然如果设置了采用映射或者为每个端点赋值颜色，就没有用了。
+					ambient：环境色，默认为白色，如果改变的话，会整体影响材质看上去的的颜色。
+					emissive：发射光的颜色，默认为黑色，即其中与MeshBasicMaterial原理类似的部分。默认情况下，如果没有光照，而且render的clearColor设置为黑色（考虑光照，这是通常的情况）的话，一个使用MeshLambertMaterial的物体时看不到的，但是如果这里改成其他颜色，应当就能看到。
+					combine：光照与颜色混合的方式，默认为乘法。
+					reflectivity：反射率，默认为1，即全部反射。
+					refractionRatio：折射率（即穿透物体一个单位长度后衰减的比率），可能用于透明物体。 
+					bumpScale：设置凹凸感
+				*/
+				
+				//sphere geometry
+				var bgeometry = new THREE.SphereGeometry(100, 32, 16);
+				var sgeometry = new THREE.SphereGeometry(40, 32, 16);
+				
+				earth = new THREE.Mesh(bgeometry, ematerial);
+				earth.position.x = 0;
+				earth.position.y = 0;
+				earth.position.z = 0;
+				
+				
+				moon = new THREE.Mesh(sgeometry, mmaterial);
+				moon.position.x = -200;
+				moon.position.y = 0;
+				moon.position.z = -200;
+				
+				scene.add(earth);
+				scene.add(moon);
+				
+				//Lights
+						//环境光
+			    var ambient = new THREE.AmbientLight( 0x555555 );
+			//	scene.add(ambient);
+						//平行光
+				var direction = new THREE.DirectionalLight(0xffffff, 2);
+				direction.position.set(-1000, 0, 0);
+				scene.add(direction);
+				
+				//Render
+				
+				renderer = new THREE.WebGLRenderer({antialias : true});
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				
+				container.appendChild(renderer.domElement);
+				
+				document.addEventListener("mousemove", mouseMove, false);
+				
+			}
+			
+			function mouseMove(event) {
+				mouseX = event.clientX - window.innerWidth / 2;
+				mouseY = event.clientY - window.innerHeight / 2;  //中间小，两边幅度大
+			}
+			
+			function animate() {
+				requestAnimationFrame(animate);
+				
+				render();
+			}
+			
+			
+			function render() {
+				
+				var timer = (new Date()) * 0.001;
+				//镜头转
+		//		camera.position.x = Math.cos(timer) * 1000;
+		//		camera.position.z = Math.sin(timer) * 1000;
+		
+		//		camera.position.x += ( mouseX - camera.position.x ) ;
+				camera.position.y += ( mouseY * 2 - camera.position.y ) ;
+				
+				camera.lookAt(scene.position);
+				
+				earth.rotation.y += 0.04;
+
+				moon.position.x = Math.cos(timer) * 200;
+				moon.position.z = Math.sin(timer) * 200;
+				moon.rotation.y += 0.05
+				
+				
+				renderer.render(scene, camera);
+			}
+		</script>
+	
+	
+	</body>
+</html>

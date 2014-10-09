@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>cube</title>
+        <style type="text/css">
+            body {
+                background-color : #000;
+            }
+        </style>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:3px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src="Vector4.js"></script>
+        <script type="text/javascript" src="Vector3.js"></script>
+        <script type="text/javascript" src="Matrix4.js"></script>
+        <script type="text/javascript" src="wind-all-0.7.3.js"></script>
+ 
+ 
+        <script type="text/javascript">
+        
+            var canvas, context, size = 100,
+                Points = [
+                    new Vector4(size, size, -size, 1),
+                    new Vector4(size, -size, -size, 1),
+                    new Vector4(size, -size, size, 1),
+                    new Vector4(size, size, size, 1),
+                    new Vector4(size, size, size, 1),
+                    new Vector4(-size, -size, size, 1),
+                    new Vector4(-size, size, size, 1),
+                    new Vector4(-size, size, size, 1),
+                    new Vector4(-size, -size, -size, 1),
+                    new Vector4(-size, size, -size, 1),
+                    new Vector4(-size, size, -size, 1),
+                    new Vector4(size, size, -size, 1)
+                ],
+                cameraPosition = new Vector4(0, 0, 700, 1),
+                distance = 500, transformedPoints = [],
+                ppoints, indices,
+                alpha = 0,
+                beta = 0;
+                matrix = new Matrix4(),
+                temp1 = new Matrix4(),
+                temp2 = new Matrix4(),
+                temp3 = new Matrix4(),
+                temp4 = new Matrix4();
+                
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            
+            //使坐标变换到中心， y轴向上
+            
+            context.translate(canvas.width / 2, canvas.height / 2);
+            context.scale(1, -1);
+            context.lineWidth = 2;
+            indices = [[0,1,2,3], [4,2,5,6], [7,5,8,9], [10,8,1,11]];
+       
+            
+            var unfold = eval(Wind.compile("async", function () {
+                var total = 0;
+                while (total <= Math.PI / 2) {
+                    context.fillStyle = "rgba(0,0,0,0.5)";
+                    context.fillRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+                    context.strokeStyle = createColor();
+                    
+                    alpha = 0.017 * 5;
+                    total += alpha;
+                    
+                    temp1 =  matrix.clone().makeRotateWithLine(Points[1], Points[2], -alpha);
+                    temp2 =  matrix.clone().makeRotateWithLine(Points[2], Points[5], -alpha);
+                    temp3 =  matrix.clone().makeRotateWithLine(Points[5], Points[8], -alpha);
+                    temp4 =  matrix.clone().makeRotateWithLine(Points[8], Points[1], -alpha);
+                    
+                    for (var i=0, len = Points.length; i < len; i++) {
+                        switch (i) {
+                            case 0 :
+                                    Points[i].applyMatrix4(temp1);
+                                    break;
+                            case 3 :
+                                    Points[i].applyMatrix4(temp1);
+                                    break;
+                            case 4 :
+                                    Points[i].applyMatrix4(temp2);
+                                    break;
+                            case 6 :
+                                    Points[i].applyMatrix4(temp2);
+                                    break;
+                            case 7 :
+                                    Points[i].applyMatrix4(temp3);
+                                    break;
+                            case 9 :
+                                    Points[i].applyMatrix4(temp3);
+                                    break;
+                            case 10 :
+                                    Points[i].applyMatrix4(temp4);
+                                    break;
+                            case 11 :
+                                    Points[i].applyMatrix4(temp4);
+                                    break;
+                            default :
+                                
+                        } 
+          //                  Points[i].clone();
+                    }
+                    
+                    ppoints = projection(Points, cameraPosition, distance);
+                    drawPoints(ppoints, indices);
+                    $await(Wind.Async.sleep(100));
+                }
+            }));
+
+            var head = eval(Wind.compile("async", function () {
+                var total = 0,
+                 vec1 = Points[1].clone().sub( Points[8] ).normalize(),
+                 vec2 = Points[2].clone().sub( Points[1] ).normalize();
+                
+                while (total <= size) {
+                    context.fillStyle = "rgba(0,0,0,0.5)";
+                    context.fillRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+                    context.strokeStyle = createColor();
+                    
+                    
+                    beta = 10;
+                    total += beta;
+                    
+                    temp1 =  matrix.clone().makeMove(vec1.clone().multiplyScalar(beta));
+                    temp2 =  matrix.clone().makeMove(vec1.clone().multiplyScalar(-beta));
+                    temp3 =  matrix.clone().makeMove(vec2.clone().multiplyScalar(beta * 2));
+                
+                    Points[10].applyMatrix4(temp1);
+                    Points[11].applyMatrix4(temp2);
+                    Points[0].applyMatrix4(temp3);
+                    Points[9].applyMatrix4(temp3);
+                     
+                    
+                    ppoints = projection(Points, cameraPosition, distance);
+                    drawPoints(ppoints, indices);
+                    $await(Wind.Async.sleep(100));
+                    } 
+                }));
+                
+            var fly = eval(Wind.compile("async", function () {
+                var total = 0, totalb = 0;
+                    alpha = 0.017;
+                    beta = 0.017;
+                while (distance > 0) {
+                    context.fillStyle = "rgba(0,0,0,0.5)";
+                    context.fillRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+                    context.strokeStyle = createColor();
+                    
+                    distance -= 0.5;
+                    total += alpha * 20;
+                    totalb += beta  ;
+                    
+                    if (Math.abs(total) > 0.34) {
+                        alpha *=-1;
+                    }
+                    
+                    if (Math.abs(totalb) > 0.34) {
+                        beta *=-1;
+                    }
+                    
+                    
+                    temp1 =  matrix.clone().makeRotateWithLine(Points[1], Points[2], alpha*10);
+                    temp2 =  matrix.clone().makeRotateWithLine(Points[8], Points[5], alpha*10);
+                    temp3 =  matrix.clone().makeRotateWithLine(Points[5], Points[2], beta );
+                    
+                   
+                     Points[0].applyMatrix4(temp1);
+                     Points[3].applyMatrix4(temp1);
+                     Points[7].applyMatrix4(temp2);
+                     Points[9].applyMatrix4(temp2);   
+                     
+                     Points[4].applyMatrix4(temp3);
+                     Points[6].applyMatrix4(temp3);
+    
+                
+                   
+                    
+                    ppoints = projection(Points, cameraPosition, distance);
+                    drawPoints(ppoints, indices);
+                    $await(Wind.Async.sleep(10));
+                    }
+                }));
+            
+           var animate = eval(Wind.compile("async", function () {
+                
+              $await(unfold());
+              $await(head());
+              $await(fly());
+                
+            }));
+            animate().start();
+            
+            
+            function projection(points, cameraPosition, distance) {
+                var i, len = points.length, result = [], point;
+                for (i = 0; i < len; i++) {
+                    point = points[i].clone();
+                    point.x *= distance / Math.abs(cameraPosition.z - point.z);
+                    point.y *= distance / Math.abs(cameraPosition.z - point.z);
+                    result.push(point);
+                }
+                return result;
+            }
+            
+            //按正方形画点，四个点一组
+            function drawPoints(points, indices) {
+                var i, len = indices.length, index = [0, 1, 2, 3];
+                    context.beginPath();
+                for (i=0; i<len; i++) {
+                    index = indices[i];
+                    context.moveTo(points[index[0]].x, points[index[0]].y);
+                    context.lineTo(points[index[1]].x, points[index[1]].y);
+                    context.lineTo(points[index[2]].x, points[index[2]].y);
+                    context.lineTo(points[index[3]].x, points[index[3]].y);
+                    context.lineTo(points[index[0]].x, points[index[0]].y);
+                    context.closePath();
+                }
+                    context.stroke();
+            }
+            
+              function createColor() {
+                var c = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"],
+                    color = "#",
+                    i = 0,
+                    random = 0;
+                for(i = 0;i < 6; i++){
+                    random =  Math.random() * 16;
+                    color += c[Math.floor(random)];
+                }
+                return color;
+            }
+        </script>
+    </body>
+</html>

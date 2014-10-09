@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+	var name = "window";
+	var person = {
+		name:"yjx",
+		getName:function(){
+			console.log(this.name);
+		},
+		
+	};
+	var person2 = {
+		name:"yjx2",
+		getName:function(){
+			return function(){
+				console.log(this.name);
+			}
+		},
+		
+	}
+	
+	person.getName();
+	(person.getName)();
+	(person.getName=person.getName)();
+	(function(){
+			console.log(this.name);
+	})();
+	person2.getName().call(person2);
+	person2.getName().bind(person2)();
+
+</script>
+
+</body>
+</html>

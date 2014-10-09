@@ -1,0 +1,26 @@
+doctype html
+html
+	head
+		title= title
+	body
+		if widgets.length>0 
+			table 
+				caption Widgets
+				tr
+					th sn
+					th name
+					th description
+					th 操作
+				each widget in widgets 
+					if widget
+						tr
+							td: a(href='./#{widget.sn}') #{widget.sn}
+							td= widget.name
+							td= widget.price
+							td= widget.description
+							td 
+								a(href='./#{widget.sn}/edit') edit   
+								a(href='./#{widget.sn}/delete?_method=delete') delete
+		else
+			p.
+				wwwwwwwwww

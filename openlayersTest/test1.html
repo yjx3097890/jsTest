@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+	<head>
+       <meta charset = "GB2312"/>
+		<title>简单的电子地图</title>
+       <style>
+         html,body,div {
+            width:100%;
+            height:100%;
+            padding:0;
+            margin:0;
+         }
+         #map {
+            margin: 5%;
+             width:90%;
+            height:90%;
+            border : solid 1px #000000;
+         }
+       </style>
+		<script type="text/javascript" src="Openlayers.js"></script>
+	</head>
+	<body>
+        <div id="map">
+        </div>
+        
+        <script defer = "defer">
+            var map = new OpenLayers.Map("map");
+            // 创建一个 OpenStreeMap raster layer
+            // 把这个图层添加到map中
+            var osm = new OpenLayers.Layer.OSM("osm", null);
+            map.addLayer(osm);
+            // 设定视图缩放地图程度为最大
+            map.zoomToMaxExtent();
+             
+              var om = new OpenLayers.Control.OverviewMap();
+            map.addControl(om);
+            
+            vlayer = new OpenLayers.Layer.Vector( "Editable" );
+
+             map.addLayer(vlayer);
+
+             map.addControl(new OpenLayers.Control.PanZoomBar());
+
+             map.addControl(new OpenLayers.Control.EditingToolbar(vlayer));
+            
+            
+        </script>
+    </body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8" />
+  <head>
+    <script>
+      var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+                      window.mozIndexedDB;
+      
+      if ('webkitIndexedDB' in window) {
+        window.IDBTransaction = window.webkitIDBTransaction;
+        window.IDBKeyRange = window.webkitIDBKeyRange;
+      }
+      
+      adsageIDB = {};
+      adsageIDB.db = null;
+      
+      adsageIDB.onerror = function(e) {
+        console.log(e);
+      };
+      
+      adsageIDB.open = function() {
+        var request = indexedDB.open("adsageIDB");
+      
+        request.onsuccess = function(e) {
+          var v = "1.00";
+          adsageIDB.db = e.target.result;
+          var db = adsageIDB.db;
+
+          if (v!= db.version) {
+            var setVrequest = db.setVersion(v);
+      
+            setVrequest.onerror = adsageIDB.onerror;
+            setVrequest.onsuccess = function(e) {
+              if(db.objectStoreNames.contains("todo")) {
+                db.deleteObjectStore("todo");
+              }
+      
+              var store = db.createObjectStore("todo",
+                {keyPath: "adsid"});
+      
+              adsageIDB.getAllTodoItems();
+            };
+          }
+          else {
+            adsageIDB.getAllTodoItems();
+          }
+        };
+      
+        request.onerror = adsageIDB.onerror;
+      }
+      
+      adsageIDB.addTodo = function(todoText) {
+        var db = adsageIDB.db;
+        var trans = db.transaction(["todo"], IDBTransaction.READ_WRITE);
+        var store = trans.objectStore("todo");
+      
+        var data ={
+          "text": todoText,
+          "adsid": new Date().getTime()
+        };
+      
+        var request = store.put(data);
+      
+        request.onsuccess = function(e) {
+          adsageIDB.getAllTodoItems();
+        };
+      
+        request.onerror = function(e) {
+          console.log("Error Adding: ", e);
+        };
+      };
+      
+      adsageIDB.deleteTodo = function(id) {
+        var db = adsageIDB.db;
+        var trans = db.transaction(["todo"], IDBTransaction.READ_WRITE);
+        var store = trans.objectStore("todo");
+      
+        var request = store.delete(id);
+      
+        request.onsuccess = function(e) {
+          adsageIDB.getAllTodoItems();
+        };
+      
+        request.onerror = function(e) {
+          console.log("Error Adding: ", e);
+        };
+      };
+      
+      adsageIDB.getAllTodoItems = function() {
+        var todos = document.getElementById("todoItems");
+        todos.innerHTML = "";
+      
+        var db = adsageIDB.db;
+        var trans = db.transaction("todo", IDBTransaction.READ_WRITE);
+        var store = trans.objectStore("todo");
+      
+        var keyRange = IDBKeyRange.lowerBound(0);
+        var cursorRequest = store.openCursor(keyRange);
+      
+        cursorRequest.onsuccess = function(e) {
+          var result = e.target.result;
+          if(!!result == false)
+            return;
+      
+          renderTodo(result.value);
+          result.continue();
+        };
+      
+        cursorRequest.onerror = adsageIDB.onerror;
+      };
+      
+      function renderTodo(row) {
+        var todos = document.getElementById("todoItems");
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        var t = document.createTextNode(row.text);
+      
+        a.addEventListener("click", function() {
+          adsageIDB.deleteTodo(row.adsid);
+        }, false);
+      
+        a.textContent = " [删除]";
+        li.appendChild(t);
+        li.appendChild(a);
+        todos.appendChild(li)
+      }
+      
+      function addTodo() {
+        var todo = document.getElementById("todo");
+        adsageIDB.addTodo(todo.value);
+        todo.value= "";
+      }
+      
+      function init() {
+        adsageIDB.open();
+      }
+      
+      window.addEventListener("DOMContentLoaded", init, false);
+    </script>
+  </head>
+  <body>
+    <ul id="todoItems"></ul>
+    <input type="text" id="todo" name="todo" placeholder="adsageIDB text?" />
+    <input type="submit" value="增加一个 IDB" onclick="addTodo(); return false;"/>
+  </body>
+</html>

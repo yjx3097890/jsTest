@@ -1,0 +1,74 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Vector2 Unit Test</title>
+    <script type="text/javascript" src="yui-min.js"></script>
+    <script src="../JS/PE/class.min.js" type="text/javascript"></script>
+    <script src="../JS/PE/PE.js" type="text/javascript"></script>
+    <script src="../JS/PE/Math/Vector2.js" type="text/javascript"></script>
+</head>
+<body class="yui3-skin-sam  yui-skin-sam">
+    <script type="text/javascript">
+        YUI().use("node", "console", "test", function (Y) {
+
+            Y.namespace("example.test");
+
+            Y.example.test.myTestCase = new Y.Test.Case({
+                name: "Vector2TestCase",
+                testAddMethod: function () {
+                    var Assert = Y.Assert;
+                    var v1 = new PE.Vector2(10, 10);
+                    var v2 = new PE.Vector2(20, 20);
+                    v1.addSelf(v2);
+                    Assert.areEqual(v1.x, 30);
+                    Assert.areEqual(v1.y, 30);
+                },
+                testMultiplyScalarMethod: function () {
+                    var Assert = Y.Assert;
+                    var v = new PE.Vector2(10, 10);
+                    var s = 5;
+                    v.multiplyScalar(s);
+
+                    Assert.areEqual(v.x, 50);
+                    Assert.areEqual(v.y, 30);
+                },
+                testNormalizeMethod1: function () {
+                    var Assert = Y.Assert;
+                    var v = new PE.Vector2(100, 10);
+                    var nv = v.normalize();
+                    Assert.isTrue(nv.length() + 0.01 > 1);
+                    Assert.isTrue(nv.length() - 0.01 < 1);
+                },
+
+                testNormalizeMethod2: function () {
+                    var Assert = Y.Assert;
+                    var v = new PE.Vector2(100, 10);
+                    var nv = v.normalize();
+                    Assert.areEqual(nv.length(), 1);
+                }
+
+            });
+
+
+            Y.example.test.ExampleSuite = new Y.Test.Suite("Example Suite");
+            Y.example.test.ExampleSuite.add(Y.example.test.myTestCase);
+            //create the console
+            var r = new Y.Console({
+                width: 500,
+                height: 500,
+                newestOnTop: false,
+                style: 'block' // to anchor in the example content
+            });
+
+            r.render();
+
+            Y.Test.Runner.add(Y.example.test.ExampleSuite);
+
+            //run the tests
+            Y.Test.Runner.run();
+
+        });
+</script>
+</body>
+</html>

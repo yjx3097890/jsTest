@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html >
+<head>
+    <title>what you see is what you get</title>
+</head>
+<body>
+zzzzzz
+<script type="text/javascript">
+    history.pushState({a:"b"},"b","heapSort.html");
+    document.addEventListener("click", function () {
+        history.pushState({a:"a"},"a","jsonV.html");
+
+    });
+    window.addEventListener("popstate", function(event){
+        if (event.state) {
+            console.log(event.state);
+        }
+    });
+</script>
+
+
+</body>
+</html>

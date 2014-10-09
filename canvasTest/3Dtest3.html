@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>cube</title>
+        <style type="text/css">
+            body {
+                background-color : #000;
+            }
+        </style>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:3px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src="Vector4.js"></script>
+        <script type="text/javascript" src="Matrix4.js"></script>
+        <script type="text/javascript" src="wind-all-0.7.3.js"></script>
+        <script type="text/javascript" src="createjs/events/Event.js"></script>
+        <script type="text/javascript" src="createjs/events/EventDispatcher.js"></script>
+        <script type="text/javascript" src="createjs/utils/IndexOf.js"></script>
+        <script type="text/javascript" src="easeljs/utils/UID.js"></script>
+        <script type="text/javascript" src="easeljs/utils/Ticker.js"></script>
+        <script type="text/javascript" src="easeljs/geom/Matrix2D.js"></script>
+        <script type="text/javascript" src="easeljs/geom/Point.js"></script>
+        <script type="text/javascript" src="easeljs/geom/Rectangle.js"></script>
+        <script type="text/javascript" src="easeljs/display/Shadow.js"></script>
+        <script type="text/javascript" src="easeljs/display/SpriteSheet.js"></script>
+        <script type="text/javascript" src="easeljs/display/Graphics.js"></script>
+        <script type="text/javascript" src="easeljs/display/DisplayObject.js"></script>
+        <script type="text/javascript" src="easeljs/display/Container.js"></script>
+        <script type="text/javascript" src="easeljs/display/Stage.js"></script>
+        <script type="text/javascript" src="easeljs/display/Bitmap.js"></script>
+        <script type="text/javascript" src="easeljs/display/Sprite.js"></script>
+        <script type="text/javascript" src="easeljs/display/BitmapAnimation.js"></script>
+        <script type="text/javascript" src="easeljs/display/BitmapText.js"></script>
+        <script type="text/javascript" src="easeljs/display/Shape.js"></script>
+        <script type="text/javascript" src="easeljs/display/Text.js"></script>
+        <script type="text/javascript" src="easeljs/display/DOMElement.js"></script>
+        <script type="text/javascript" src="easeljs/events/MouseEvent.js"></script>
+        <script type="text/javascript" src="easeljs/filters/Filter.js"></script>
+        <script type="text/javascript" src="easeljs/ui/ButtonHelper.js"></script>
+        <script type="text/javascript" src="easeljs/ui/Touch.js"></script>
+        <script type="text/javascript" src="easeljs/utils/SpriteSheetUtils.js"></script>
+        <script type="text/javascript" src="easeljs/utils/SpriteSheetBuilder.js"></script>
+        <script type="text/javascript">
+        
+            var canvas, context, stage, text,
+                Points = [
+                    new Vector4(100, 100, 100, 1),
+                    new Vector4(100, 100, -100, 1),
+                    new Vector4(-100, 100, -100, 1),
+                    new Vector4(-100, 100, 100, 1),
+                    new Vector4(-100, -100, 100, 1),
+                    new Vector4(-100, -100, -100, 1),
+                    new Vector4(100, -100, -100, 1),
+                    new Vector4(100, -100, 100, 1)
+                ],
+                cameraPosition = new Vector4(0, 0, 700, 1),
+                distance = 500, transformedPoints = [],
+                ppoints, indices,
+                alpha = 0,
+                matrix = new Matrix4(),
+                temp = new Matrix4();
+                
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            
+            stage = new createjs.Stage(canvas);
+            text = new createjs.Text("", "16px Arial", "#FFF");
+            text.textBaseline = "top";
+            text.x = text.y = 10;
+            stage.addChild(text);
+            stage.update();
+            
+            
+            
+            //使坐标变换到中心， y轴向上
+            
+            indices = [[0,1,2,3], [0,3,4,7], [4,5,6,7], [1,6,5,2], [1,0,7,6], [3,2,5,4]];
+       
+            
+            var animate = eval(Wind.compile("async", function () {
+                
+                while (true) {
+                    
+                    text.text = matrix.toString(3);
+                    stage.update();
+
+                    context.translate(canvas.width / 2, canvas.height / 2);
+                    context.scale(1, -1);
+                    context.lineWidth = 2;
+                    context.strokeStyle = createColor();
+                           
+    //              distance += (10 - Math.random()*20);
+                     alpha += 0.07;
+                     
+                     matrix.identity().multiply(temp.makeRotate(alpha, "z")).multiply(temp.makeRotate(alpha, "y")).multiply(temp.makeRotate(alpha, "x"));
+          //          matrix.makeRotate(alpha,"x");
+
+                     for (var i=0, len = Points.length; i < len; i++) {
+                        transformedPoints[i] = Points[i].clone().applyMatrix4(matrix);
+                     }
+                     
+                    ppoints = projection(transformedPoints, cameraPosition, distance);
+                    drawPoints(ppoints, indices);
+                    $await(Wind.Async.sleep(100));
+                }
+            }));
+            animate().start();
+            
+            
+            function projection(points, cameraPosition, distance) {
+                var i, len = points.length, result = [], point;
+                for (i = 0; i < len; i++) {
+                    point = points[i].clone();
+                    point.x *= distance / Math.abs(cameraPosition.z - point.z);
+                    point.y *= distance / Math.abs(cameraPosition.z - point.z);
+                    result.push(point);
+                }
+                return result;
+            }
+            
+            //按正方形画点，四个点一组
+            function drawPoints(points, indices) {
+                var i, len = indices.length, index = [0, 1, 2, 3];
+                    context.beginPath();
+                for (i=0; i<len; i++) {
+                    index = indices[i];
+                    context.moveTo(points[index[0]].x, points[index[0]].y);
+                    context.lineTo(points[index[1]].x, points[index[1]].y);
+                    context.lineTo(points[index[2]].x, points[index[2]].y);
+                    context.lineTo(points[index[3]].x, points[index[3]].y);
+                  //  context.closePath();
+                }
+                    context.stroke();
+            }
+            
+              function createColor() {
+                var c = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"],
+                    color = "#",
+                    i = 0,
+                    random = 0;
+                for(i = 0;i < 6; i++){
+                    random =  Math.random() * 16;
+                    color += c[Math.floor(random)];
+                }
+                return color;
+            }
+        </script>
+    </body>
+</html>

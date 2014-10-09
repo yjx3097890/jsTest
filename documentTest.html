@@ -1,0 +1,68 @@
+﻿<!DOCTYPE hhtml>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+WWW
+</title>
+</head>
+<body>
+xxxx
+<button id="refresh" value="cc">刷新</button>
+</body>
+<script>
+
+console.log(Element);
+console.log("-----html-----");
+console.log(document.documentElement.nodeName);
+console.log(document.documentElement.nodeType);
+console.log(document.documentElement.nodeValue);
+console.log(document.documentElement.ownerDocument);
+console.log(document.documentElement.parentNode);
+
+console.log("-----body-----");
+console.log(document.body.nodeName);
+console.log(document.body.nodeType);
+console.log(document.body.nodeValue);
+console.log(document.body.ownerDocument);
+console.log(document.body.parentNode);
+
+console.log("-----head-----");
+console.log(document.head.nodeName);
+console.log(document.head.nodeValue);
+
+console.log("-----doctype-----")
+console.log(document.doctype.nodeName);
+console.log(document.doctype.nodeType);
+console.log(document.doctype.nodeValue);
+console.log(document.doctype.ownerDocument);
+console.log(document.doctype.parentNode);
+
+document.title="TTT";
+
+console.log(document.URL);
+console.log(document.domain);
+console.log(document.referrer);
+
+//document.domain="C";
+//console.log(document.domain);
+
+//location ="http://www.baidu.com";
+//location.assign("x");
+//location.replace("X");
+
+var bt = document.getElementById("refresh");
+bt.onclick=function(){
+	location.reload(true);
+}
+
+console.log("-----bt-----")
+console.log(bt.nodeName);
+console.log(bt.tagName);
+console.log(bt.nodeType);
+console.log(bt.nodeValue);
+console.log(bt.ownerDocument);
+console.log(bt.parentNode);
+</script>
+</html>

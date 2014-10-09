@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title></title>
+		<script type="text/javascript">
+			var buffer = new ArrayBuffer(20);
+			console.log(buffer.byteLength);
+			
+			var view = new DataView(buffer,9,10);
+			console.log(view.byteLength);
+			console.log(view.buffer === buffer);
+			
+			view.setUint16(0,25,true);
+			view.setUint16(1,16);
+			console.log(view.getUint16(0,true));
+			console.log(view.getUint8(0));
+			console.log(view.getInt16(0,true));
+			
+			console.log(Uint16Array.BYTES_PER_ELEMENT);
+			
+			var int8 = new Int8Array([12,13,14,15,03]);
+			console.log(int8.byteLength);
+			console.log(int8[2]);
+			
+			var sub8 = int8.subarray(1,4);
+			console.dir(sub8);
+		</script>
+	</head>
+	<body></body>
+</html>

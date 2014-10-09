@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<html >
+<head>
+<title>what you see is what you get</title>
+<script type="text/javascript" src="MyEventTest.js"></script>
+</head>
+<body>
+<button class="dragable" style="position:absolute"> 托我</button><br>
+<div class="dragable"  style="position:absolute;width:100px;height:100px;background:red;"></div>
+<script type="text/javascript">
+	var drag=(function(){
+		var drag = new eventTarget(),
+		dragElement=null,
+		offsetX,offSetY;
+		function handler(event){
+			switch(event.type){
+				case "mousedown":
+					if(event.target.className.indexOf("dragable")>-1){
+						dragElement=event.target;
+						offsetX=event.clientX-dragElement.offsetLeft;
+						offsetY=event.clientY-dragElement.offsetTop;
+						drag.fire({type:"dragStart",taret:dragElement,x:dragElement.offsetLeft,y:dragElement.offsetTop});
+					}
+					break;
+				case "mouseup":
+					drag.fire({type:"dragEnd",taret:dragElement,x:dragElement.offsetLeft,y:dragElement.offsetTop});
+					dragElement=null;
+					break;
+				case "mouseover":
+					if(dragElement!=null){
+						dragElement.style.top=(event.clientY-offsetY)+"px";
+						dragElement.style.left=(event.clientX-offsetX)+"px";
+						drag.fire({type:"drag",taret:dragElement,x:dragElement.offsetLeft,y:dragElement.offsetTop});
+					}
+					break;
+			}
+		}
+		
+		drag.enable=function(){
+				document.addEventListener("mousedown",handler);
+				document.addEventListener("mouseup",handler);
+				document.addEventListener("mouseover",handler);
+		};
+			
+		drag.disable=function(){
+				document.removeEventListener("mousedown",handler);
+				document.removeEventListener("mouseup",handler);
+				document.removeEventListener("mouseover",handler);
+		};
+		
+		return drag;
+	})();
+	
+	drag.enable();
+	drag.addEvent("drag",function(event){
+		console.log("x:"+event.x+",y:"+event.y);
+	});
+	
+</script>
+</body>
+</html>

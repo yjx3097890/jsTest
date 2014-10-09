@@ -1,0 +1,19 @@
+doctype html
+html
+	head
+		title= title
+	body
+		h1 edit #{widget.name}
+		form(action='./update?_method=put' method='post')
+			p
+				label(for='wname') Widget Name
+				input(type='text' value='#{widget.name}' required='required' name='wname' id='wname')
+			p
+				label(for='wprice') Widget Price
+				input(type='text' value='#{widget.price}' name='wprice' id='wprice' pattern='^\$?([0-9]{1,3},([0-9]{3},)*[0-9]{3}|[0-9]+)(.[0-9][0-9])?$')
+			p
+				label(for='wdesc') Widget Description
+				textarea( name='wdesc' id='wdesc') #{widget.description}
+			p
+				input(type='reset' value='reset')
+				input(type='submit' value='submit')

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>webworker</title>
+<script type="text/javascript">
+	var w;
+	
+	function start(){
+		console.log("start");
+		if(typeof Worker !== "undefined"){
+			if(!w){
+				w = new Worker("webWorkerTest.js");
+			}
+			w.postMessage("helloword");
+			w.onmessage=function(event){
+				document.getElementById("result").innerHTML=event.data;
+			}
+			
+		}else{
+			alert("Your browser is not support web worker!");
+		}
+	}		
+	function halt(){
+		w.terminate();
+		w=null;
+		console.log("stop");
+	}
+	
+	start();
+	
+	setTimeout(halt,5000);
+	setTimeout("start()",6000);
+	
+</script>
+</head>
+<body>
+
+<div id="result"></div>
+
+</body>
+</html>

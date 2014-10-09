@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+    <script src="../../script/Vector3.js" type="text/javascript"></script>
+    <canvas id="myCanvas" width="700" height="500" style="border: 1px solid #c3c3c3;">
+Your browser does not support the canvas element.
+</canvas>
+    <script type="text/javascript">
+        var canvas = document.getElementById("myCanvas");
+        var cxt = canvas.getContext("2d");
+        cxt.lineWidth = 3;
+        var Points = [];
+        var translateX = 250;
+        var translateY = 250;
+        var distance = 500;
+        var eyePosition = new Vector3(0, 0, 700);
+        cxt.translate(translateX, translateY);
+        cxt.scale(1, -1);
+        function init() {
+            Points[0] = new Vector3(100, 100, 100);
+            Points[1] = new Vector3(100, 100, -100);
+            Points[2] = new Vector3(-100, 100, -100);
+            Points[3] = new Vector3(-100, 100, 100);
+            Points[4] = new Vector3(100, -100, 100);
+            Points[5] = new Vector3(100, -100, -100);
+            Points[6] = new Vector3(-100, -100, -100);
+            Points[7] = new Vector3(-100, -100, 100)
+        }
+        function changeDistance() {
+            for (var i = 0; i < Points.length; i++) {
+                Points[i].x = Points[i].x * distance / Math.abs(eyePosition.z - Points[i].z);
+                Points[i].y = Points[i].y * distance / Math.abs(eyePosition.z - Points[i].z);
+            }
+        }
+        function drawCube() {
+            cxt.beginPath();
+            cxt.moveTo(Points[0].x, Points[0].y);
+            cxt.lineTo(Points[1].x, Points[1].y);
+            cxt.lineTo(Points[2].x, Points[2].y);
+            cxt.lineTo(Points[3].x, Points[3].y);
+            cxt.lineTo(Points[0].x, Points[0].y);
+            cxt.moveTo(Points[4].x, Points[4].y);
+            cxt.lineTo(Points[5].x, Points[5].y);
+            cxt.lineTo(Points[6].x, Points[6].y);
+            cxt.lineTo(Points[7].x, Points[7].y);
+            cxt.lineTo(Points[4].x, Points[4].y);
+            cxt.moveTo(Points[1].x, Points[1].y);
+            cxt.lineTo(Points[5].x, Points[5].y);
+            cxt.moveTo(Points[0].x, Points[0].y);
+            cxt.lineTo(Points[4].x, Points[4].y);
+            cxt.moveTo(Points[2].x, Points[2].y);
+            cxt.lineTo(Points[6].x, Points[6].y);
+            cxt.moveTo(Points[3].x, Points[3].y);
+            cxt.lineTo(Points[7].x, Points[7].y);
+            cxt.stroke();
+        }
+        var reduceDrawCubeAsync = eval(Jscex.compile("async", function () {
+            while (distance < 750) {
+                cxt.clearRect(-translateX, -translateY, canvas.width, canvas.height);
+                init();
+                distance += 10;
+                changeDistance();
+                drawCube(10);
+                $await(Jscex.Async.sleep(100));
+            }
+        }));
+        var magnifyDrawCubeAsync = eval(Jscex.compile("async", function () {
+            while (distance > 150) {
+                cxt.clearRect(-translateX, -translateY, canvas.width, canvas.height);
+                init();
+                distance -= 10;
+                changeDistance();
+                drawCube(-10);
+                $await(Jscex.Async.sleep(100));
+            }
+        }));
+        var executeAsync = eval(Jscex.compile("async", function () {
+            $await(reduceDrawCubeAsync());
+            $await(magnifyDrawCubeAsync());
+        }));
+        executeAsync().start();
+    </script>
+
+</body>
+</html>

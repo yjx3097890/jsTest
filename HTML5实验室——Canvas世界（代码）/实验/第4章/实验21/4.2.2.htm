@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <script src="../../script/jscex.jscexRequire.min.js" type="text/javascript"></script>
+    <div style="border-bottom: #222 15px solid; border-left: #222 15px solid; background-color: #111;
+        width: 620px; color: #ccc; border-top: #222 15px solid; border-right: #222 15px solid">
+        <canvas id="myCanvas" width="620" height="100">Your browser does not support the canvas element. </canvas>
+    </div>
+    <script type="text/javascript">
+        Loading = function (text, fontSize, baseFontSize, color, position, interval, font, bolder) {
+            this.text = text;
+            this.fontSize = fontSize;
+            this.baseFontSize = baseFontSize;
+            this.color = color;
+            this.position = position;
+            this.interval = interval;
+            this.font = font;
+            this.bolder = bolder;
+            return this.init();
+        }
+
+        Loading.prototype.init = function () {
+            var text = [];
+            var _this = this;
+            var words = _this.text.split("");
+            for (i in words) {
+                text.push({
+                    "text": words[i],
+                    "fontSize": _this.fontSize,
+                    "baseFontSize": _this.baseFontSize,
+                    "color": _this.color,
+                    "position": new Vector2(_this.position.x + i * _this.interval, _this.position.y),
+                    "font": _this.font,
+                    "bolder": _this.bolder
+                });
+
+            }
+            return text;
+        }
+
+        Vector2 = function (x, y) {
+            this.x = x || 0;
+            this.y = y || 0;
+        };
+
+
+        var loading = new Loading("this is from loadingCanvas！！！！！！！！！！！！！", 30, 30, "#ffffff", new Vector2(20, 80), 15, "宋体", "bolder");
+        var loadingCanvas = document.createElement('canvas');
+        loadingCanvas.width = 620;
+        loadingCanvas.height = 100;
+
+        var cxt = loadingCanvas.getContext("2d");
+        cxt.fillStyle = loading[0].color;
+        function drawLoading() {
+            for (i in loading) {
+                cxt.font = loading[i].bolder + " " + loading[i].fontSize + "px " + loading[i].font;
+                cxt.fillText(loading[i].text, loading[i].position.x, loading[i].position.y);
+            }
+
+        }
+        var currentMap = 0;
+        function changeFontSize() {
+            if (currentMap > 1100) currentMap = 0;
+            currentMap += 5;
+            if (parseInt(currentMap / 40) <= loading.length - 1) {
+                loading[parseInt(currentMap / 40)].fontSize =  loading[0].baseFontSize + 35 - currentMap % 40;
+            }
+            if (parseInt(currentMap / 40) + 1 <= loading.length - 1) {
+
+                loading[parseInt(currentMap / 40) + 1].fontSize = currentMap % 40 + loading[0].baseFontSize;
+            }
+        }
+        function draw() {
+            cxt.clearRect(0, 0, loadingCanvas.width, loadingCanvas.height);
+            drawLoading();
+            changeFontSize();
+        }
+        setInterval(draw, 10);
+
+
+
+
+
+
+        var canvas = document.getElementById("myCanvas");
+        var context = canvas.getContext('2d');
+        context.font = "bolder 40px 宋体";
+        context.fillStyle = "#ffffff";
+        var gameLoadingAsync = eval(Jscex.compile("async", function () {
+            while (true) {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(loadingCanvas, 0, 0);
+                context.fillText("this is game canvas!", 10, 38);
+                $await(Jscex.Async.sleep(10));
+            }
+        }))
+        gameLoadingAsync().start();
+
+    </script>
+</body>
+</html>
+ 

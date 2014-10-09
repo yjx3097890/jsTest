@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>canvas</title>
+</head>
+<body>
+<canvas id="canvas" width="300px" height="300px" >浏览器不支持canvas</canvas>
+
+<script type="text/javascript">
+var canvas = document.getElementById("canvas");
+
+if(canvas.getContext){
+var context = canvas.getContext("2d");
+
+context.fillStyle="#ff0000";
+context.fillRect(10,10,50,50);
+context.fillStyle="rgba(0,0,255,0.5)";
+context.shadowColor="rgba(0,0,255,1)";
+context.shadowBlur=3;
+context.shadowOffsetX=5;
+context.shadowOffsetY=5;
+context.fillRect(30,30,50,50);
+context.clearRect(40,40,10,10);
+
+
+
+}
+
+var url = canvas.toDataURL("image/png");
+var img = document.createElement("img");
+img.src=url;
+
+document.body.appendChild(img);
+
+</script>
+
+
+</body>
+</html>

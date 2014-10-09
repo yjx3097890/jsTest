@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var a = 5;  //基本类型
+	var b = new Number(a);   //基本包装对象
+	console.log(typeof a);
+	console.log(typeof b);
+	console.log(typeof Number(a));
+	console.log(a instanceof Number);
+	console.log(b instanceof Number);
+	console.log(Number(a) instanceof Number);
+	console.log(a.constructor);
+	console.log(b.constructor);
+	console.log(Number(a).constructor);
+	var c = a.toExponential(2);
+	console.log(c);
+	console.log(typeof c);
+	a.hello = "hello";
+	b.hello = "bhello";
+	console.log(a.hello);
+	console.log(b.hello);
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

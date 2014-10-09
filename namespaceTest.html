@@ -1,0 +1,21 @@
+
+	var Myapp = Myapp || {};
+	Myapp.namespace = function (module) {
+		var arr = module.split("."), i, parent = Myapp;
+		if (arr[0] === "Myapp") {
+			arr = arr.slice(1);
+		}
+		for (i = 0; i < arr.length; i++) {
+			if (typeof parent[arr[i]] === "undefined") {
+				parent[arr[i]] = {};
+			}
+			parent = parent[arr[i]];
+		}
+		return parent;
+	};
+	Myapp.namespace("com.yjx.qq");
+	Myapp.namespace("Myapp.com.rockontrol.yjx");
+	Myapp.namespace("Myapp.com.rockontrol.qq.wbd");
+	console.dir(Myapp);
+	Myapp.namespace("Myapp.yjx.object");
+	Myapp.namespace("Myapp.utils.lang");

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>cannon</title>
+        <meta charset="utf-8"/>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="500" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src = "wind-all-0.7.3.js"></script>
+        <script type="text/javascript">
+            var  f = 30, r = 10, g = 9.8 ,
+            canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d");
+            
+            var Ball = function(x, y, r, velocity, acceleration) {
+                if( velocity === undefined ) velocity = {x: 0, y: 0};
+                if( acceleration === undefined ) acceleration = {x: 0, y: 0};
+                this.position = {x:  x || 10, y: y || 10};
+                this.radius = r || 10;
+                this.velocity = {x: velocity.x, y: velocity.y};
+                this.acceleration = {x: velocity.x, y : velocity.y};
+            };
+            Ball.prototype.draw = function(color) {
+                 context.beginPath();
+                   context.fillStyle = color || "#fff";
+                   context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+                   context.closePath();
+                   context.fill();
+            };
+            Ball.prototype.hasImpactSide = function(canvas, direction) {
+                if(direction.up && this.position.y - this.radius <= 0) {
+                    return true;
+                }
+                if(direction.right && this.position.x + this.radius >= canvas.width) {
+                    return true;
+                }
+                if(direction.down && this.position.y + this.radius >= canvas.height) {
+                    return true;
+                }
+                if(direction.left && this.position.x - this.radius <= 0) {
+                    return true;
+                }
+                return false;
+            };
+            Ball.prototype.clone = function() {
+                var obj = new Ball();
+                for(var p in this) {
+                    if(this.hasOwnProperty(p)) {
+                        if( typeof this[p] === "object") {
+                            obj[p] = Object.create(this[p]);
+                        }else{
+                            obj[p] = this[p];
+                        }
+                    }
+                }
+                return obj;
+            };
+            
+            
+            var draw = eval(Wind.compile("async", function() {
+                
+                var balls = [];
+                
+                //频率f 太小时，防止背景变化
+                context.fillStyle = "rgba(0, 0, 0, 1)";  
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                
+               
+                
+                
+                while(true){
+                    var ball = new Ball(185, 370, Math.random() * 20 + 1,{x: Math.random() * 40 + 60, y: Math.random() * (-100)});
+                ball.acceleration.y = g;
+                balls.push(ball);
+                if(balls.length > 100) {
+                    balls.shift();
+                }
+
+                context.fillStyle = "rgba(0, 0, 0, 0.3)";  //实现残影效果
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                
+                 var image = new Image();
+                image.src = "artillery.png";
+                image.onload = function() {
+                    context.drawImage(image, 0, 325);
+                }
+                  
+                for(var i = 0 ; i < balls.length ; i++){
+                  
+                    balls[i].draw("#ffffff");
+                   
+                   //先算距离
+                    balls[i].position.x += balls[i].velocity.x * 10 / f;
+                    balls[i].position.y += balls[i].velocity.y * 10 / f;
+                    
+                   if( balls[i].hasImpactSide(canvas,{down: true}) ) {
+                        if(balls[i].velocity.y > 0){
+                        //  balls[i].velocity.y *= -(1 ); 
+                            balls[i].velocity.y *= -(1 - 0.3); 
+                        }
+                   }else{
+                        balls[i].velocity.y += balls[i].acceleration.y * 10 / f;
+                   }
+              }
+                   $await(Wind.Async.sleep(1000 / f));
+                   
+               
+                }
+                
+            })); 
+            
+            draw().start();
+        </script>
+    </body>
+</html>

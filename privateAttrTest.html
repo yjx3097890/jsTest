@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+</head>
+<body>
+<script type="text/javascript">
+	var obj1 = (function () {
+		var a = "oh,my God!";
+		return {
+			getA: function () {
+				return a;
+			}
+		};
+	})();
+	console.log(obj1.getA());
+	
+	var obj2 = {
+		getA: (function () {
+			var a = "my God too!";
+			return function () { 
+				return a;
+			};
+		})()	
+	};
+	console.log(obj2.getA());
+	
+	function Obj() {
+		var b = "baobao";
+		this.getB = function () {
+			return b;
+		}
+	}
+	Obj.prototype.getC = (function () {
+		var c = "caocao";
+		return function () {
+			return c;
+		};
+	})();
+	
+	var obj3 = new Obj();
+	console.log(obj3.getB());
+	console.log(obj3.getC());
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>贪吃蛇</title>
+        <meta charset="utf-8"/>
+        <style type="text/css">
+            body {
+                text-align : center;
+                
+            }
+            #canvas {
+                display:block;
+                border:1px solid #d3d3d3;
+                margin: auto;
+                background-color:#000
+               
+            }
+            
+            #button {
+                display:block;
+                 margin: auto;
+            }
+        </style>
+	</head>
+    <body>
+    	<canvas id="canvas" width="400" height="300" ></canvas>
+        <button  id = "button" >开始游戏</button> 速度：<input type="text" style="width:30px" id="speed" value="10"/>
+        <script type="text/javascript" src = "wind-all-0.7.3.js"></script>
+        <script type="text/javascript">
+            var canvas = document.getElementById("canvas"),
+                context = canvas.getContext("2d"),
+                btn = document.getElementById("button");
+            var speed = 10,
+                sideLength = 10,
+                snake = [], 
+                foodPosition = {x: -1,y: -1},
+                direction = "right";
+            
+            snake.move = function() {
+                
+                var head = snake[snake.length-1];
+                if (head.x == foodPosition.x && head.y == foodPosition.y) {
+                    foodPosition.x = -1;
+                    foodPosition.y = -1;
+                } else {
+                    clearColor(snake[0]);
+                    snake.shift();
+                }
+                
+                switch ( direction ){
+                    case "up":
+                        snake.push({
+                            x: head.x,
+                            y: head.y - 1
+                        });
+                        break;
+                    case "down":
+                        snake.push({
+                            x: head.x,
+                            y: head.y + 1
+                        });
+                        break;
+                    case "left":
+                        snake.push({
+                            x: head.x - 1,
+                            y: head.y
+                        });
+                        break;
+                    default:
+                         snake.push({
+                            x: head.x + 1,
+                            y: head.y
+                        });
+                }
+                
+               
+            };
+            
+             window.addEventListener("keydown", keyDownEvent);
+             btn.addEventListener("click", clickEvent);
+            
+            function init() {
+                snake.splice(0,snake.length);
+                for(var i = 0 ; i < 3; i++){
+                    snake.push({
+                        x:i,
+                        y:0
+                    });
+                }
+                direction = "right";
+                canvas.width = canvas.width;
+               
+                speed = parseInt(document.getElementById("speed").value) || 10;
+                document.getElementById("speed").value = speed;
+               
+            }
+            
+            var animate = eval(Wind.compile("async", function(){
+                while(true) {
+                    if(isGameOver()) {
+                        btn.innerHTML = "重新开始";
+                        drawGameOver();
+                        break;
+                    }
+                    snake.move();
+                    drawFoodAndSnake();
+                    $await(Wind.Async.sleep(1000 / speed));
+                }
+            }));
+            
+            function drawFoodAndSnake() {
+                if(foodPosition.x == -1) {
+                    foodPosition.x = Math.random() * canvas.width / sideLength | 0;
+                    foodPosition.y = Math.random() * canvas.height / sideLength | 0;
+                    while(inSnakeBody(foodPosition)) {
+                        foodPosition.x = Math.random() * canvas.width / sideLength | 0;
+                        foodPosition.y = Math.random() * canvas.height / sideLength | 0;
+                    }
+                }
+                
+                context.fillStyle = randomColor();
+                context.fillRect(foodPosition.x * sideLength, foodPosition.y * sideLength, sideLength, sideLength);
+                
+                context.fillStyle = "#ff0000";
+                for(var i=0; i<snake.length; i++){
+                    var point = snake[i];
+                    context.fillRect(point.x * sideLength, point.y * sideLength, sideLength, sideLength);
+                }
+            }
+            
+                
+            function clearColor(point) {
+                context.clearRect(point.x * sideLength, point.y * sideLength, sideLength, sideLength);
+            }
+            
+            function isGameOver() {
+                var head = snake[snake.length-1];
+                if(head.x < 0 || head.y < 0 || head.x * sideLength >= canvas.width || head.y * sideLength >= canvas.height ){
+                    return true;
+                }
+                if(inSnakeBody(head)) {
+                    return true;
+                }
+                return false;
+            }
+            
+            function drawGameOver(){
+                alert("over");
+            }
+            
+            function inSnakeBody(point) {
+                for (var i=0; i<snake.length - 1; i++){
+                    if(point.x == snake[i].x && point.y == snake[i].y) {
+                       return true; 
+                    }
+                }
+                return false;
+            }
+        
+            
+            //随即颜色，但不为黑
+            function randomColor() {
+                var c = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"],
+                    color = "#",
+                    i = 0,
+                    random = 0;
+                for(i = 0;i < 6; i++){
+                    random =  Math.random() * 16;
+                    color += c[Math.floor(random)];
+                }
+                if (color == "#000000") {
+                    color = randomColor();
+                }
+                return color;
+            }
+            
+            function keyDownEvent(event) {
+                var num = event.keyCode; //上下左右 = 38 40 37 39
+                switch (num) {
+                    case 38:
+                        if(direction == "down"){
+                            break;
+                        }
+                        direction = "up";    
+                        break;
+                    case 40:
+                        if(direction == "up"){
+                            break;
+                        }
+                        direction = "down";    
+                        break;
+                    case 37:
+                        if(direction == "right"){
+                            break;
+                        }
+                        direction = "left";    
+                        break;
+                    case 39:
+                        if(direction == "left"){
+                            break;
+                        }
+                        direction = "right";
+                }
+            }
+            
+            function clickEvent(event) {
+                var status = event.target.innerHTML;
+                
+                switch (status) {
+                    case "开始游戏":
+                        init();
+                        animate().start();
+                        event.target.innerHTML = "暂停游戏";
+                        break;
+                    case "暂停游戏":
+                       
+                        event.target.innerHTML = "继续游戏";
+                        break;
+                    case "继续游戏":
+                        
+                        event.target.innerHTML = "暂停游戏";
+                        break;
+                    default:
+                        init();
+                        animate().start();
+                        event.target.innerHTML = "暂停游戏";
+                }
+            }
+        </script>
+    </body>
+</html>

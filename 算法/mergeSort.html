@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+	function mergeSort(array,start,end,arrC){
+		var m;
+		if(typeof arrC == "undefined"){
+			arrC=[];
+		}
+		if(start<end){
+			m=Math.floor((end+start)/2);
+			mergeSort(array,start,m,arrC);
+			mergeSort(array,m+1,end,arrC);
+			mergeArray(array,start,m,end,arrC);
+		}
+	}
+	function mergeArray(arrA,start,mid,end,arrC){
+		var a=mid-start,b=end-mid-1;
+		while(a>=0&&b>=0){
+			if(arrA[mid-a]>=arrA[end-b]){
+				arrC.push(arrA[end-b]);
+				b--;
+			}else{
+				arrC.push(arrA[mid-a]);
+				a--;
+			}
+		}
+		while(a>=0){
+			arrC.push(arrA[mid-a]);
+			a--;
+		}
+		while(b>=0){
+			arrC.push(arrA[end-b]);
+			b--;
+		}
+		for(var i=0,l=arrC.length;i<l;i++){
+			arrA[start+i]=arrC.shift();
+		}
+	}
+	var test=[2,5,3,2,6,7,5,4,9,22];
+	mergeSort(test,0,test.length-1);
+	console.log(test);
+</script>
+
+</body>
+</html>

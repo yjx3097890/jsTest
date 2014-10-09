@@ -1,0 +1,23 @@
+<!Doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<title>bidirectional full-duplex communication</title>
+		 <script type="text/javascript" src='/socket.io/socket.io.js'></script>
+
+	</head>
+	<body>
+		<div id="output"></div>
+		<script type="text/javascript">
+			var socket = io.connect('http://localhost:8124');
+			socket.on('news', function (data, fn) {
+				var html = '<p>' + data.news + '</p>';
+				document.getElementById('output').innerHTML = html;
+				socket.emit('echo', {back: data.news});
+				fn('get it');
+
+			});
+
+		</script>
+	</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+//"use strict";
+var a ;
+
+console.log(typeof a);
+console.log(typeof b);
+
+var global = (function(){
+	return this;
+})();
+
+console.log(global);
+
+var ga = 1;
+gb = 2;
+
+console.log(delete ga);
+console.log(delete gb);
+console.log(typeof ga);
+console.log(typeof gb);
+
+var gname = "window";
+(function fnc(){
+ console.log(typeof gname);
+ var gname = "local";
+ console.log(typeof gname);
+})();
+
+alert(gage);
+var gage = 12;
+</script>
+</head>
+<body>
+<ol id="book">
+	<li><a href="" class="item"></a></li>
+	<li><a href="" class="item"></a></li>
+	<li><a href="" class="item"></a></li>
+</ol>
+
+
+</body>
+</html>

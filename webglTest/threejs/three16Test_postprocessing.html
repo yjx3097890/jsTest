@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - postprocessing</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				margin: 0px;
+				background-color: #ffffff;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="three.js"></script>
+
+		<script src="CopyShader.js"></script>
+		<script src="DotScreenShader.js"></script>
+		<script src="RGBShiftShader.js"></script>
+        	<script src="VignetteShader.js"></script>
+        
+		<script src="EffectComposer.js"></script>
+        <script src="ShaderPass.js"></script>
+        <script src="MaskPass.js"></script>
+		<script src="RenderPass.js"></script>
+		
+
+		<script>
+
+			var camera, scene, renderer, composer;
+			var object, light;
+
+			init();
+			animate();
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.1, 1000 );
+				camera.position.z = 400;
+
+				scene = new THREE.Scene();
+	//			scene.fog = new THREE.Fog( 0xffffff, 1, 1000 );
+
+				object = new THREE.Object3D();
+				scene.add( object );
+
+				var geometry = new THREE.SphereGeometry( 1, 4, 4 );
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.NoShading } );
+
+				for ( var i = 0; i < 1; i ++ ) {
+
+					var mesh = new THREE.Mesh( geometry, material );
+					mesh.position.set(  0.5,  0.5,  0.5 ).normalize();
+				//	mesh.position.multiplyScalar(  400 );
+				//	mesh.rotation.set( Math.random() * 2, Math.random() * 2, Math.random() * 2 );
+					mesh.scale.x = mesh.scale.y = mesh.scale.z =  50;
+					object.add( mesh );
+
+				}
+
+				scene.add( new THREE.AmbientLight( 0xffff00 ) );
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 1, 1, 1 );
+			//	scene.add( light );
+
+				// postprocessing
+                	var parameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: true };
+
+			//	composer = new THREE.EffectComposer( renderer );
+				composer = new THREE.EffectComposer( renderer, new THREE.WebGLRenderTarget(window.innerWidth/2, window.innerHeight/2, parameters) );
+				composer.addPass( new THREE.RenderPass( scene, camera ) );
+
+				var effect = new THREE.ShaderPass( THREE.DotScreenShader );   //DotScreenShader:从小孔中观察物体，scale越大孔越密
+				effect.uniforms[ 'scale' ].value = 1;
+               effect.renderToScreen = true;
+	//			composer.addPass( effect );
+
+                
+                 var renderMaskInverse = new THREE.MaskPass( scene, camera );
+				renderMaskInverse.inverse = false;
+                composer.addPass( renderMaskInverse );
+                
+				var effect = new THREE.ShaderPass( THREE.RGBShiftShader );     //RGBShiftShader:r、g、b颜色分开，amount代表颜色分离距离
+				effect.uniforms[ 'amount' ].value = 0.0055;
+	//			effect.renderToScreen = true;   //true就会绘制到最终屏幕上
+			  composer.addPass( effect );
+
+                
+                var renderMaskInverse = new THREE.MaskPass( scene, camera );
+				renderMaskInverse.inverse = true;
+                composer.addPass( renderMaskInverse );
+                
+                var clearMask = new THREE.ClearMaskPass();
+                composer.addPass( clearMask );
+                
+                
+                var effectVignette = new THREE.ShaderPass( THREE.VignetteShader );
+				effectVignette.uniforms[ "offset" ].value = 0.95;
+				effectVignette.uniforms[ "darkness" ].value = 1.6;
+			//	effectVignette.renderToScreen = true;   //true就会绘制到最终屏幕上
+                 composer.addPass( effectVignette );
+                
+                var effect = new THREE.ShaderPass( THREE.CopyShader);  //简单复制作用
+				effect.renderToScreen = true;
+				composer.addPass( effect );
+            
+			
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+			
+
+			//	object.rotation.x += 0.005;
+			//	object.rotation.y += 0.01;
+                
+                renderer.setViewport( 0, 0, window.innerWidth/2, window.innerHeight/2 );
+                renderer.setClearColor(0xFFFFFF,1);
+				composer.render();
+
+			}
+
+		</script>
+
+	</body>
+</html>

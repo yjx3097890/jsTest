@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+
+	function deepExtend(parent, child) {
+		var hasOwnP = Object.prototype.hasOwnProperty,
+		toStr = Object.prototype.toString,
+			arrStr = "[object Array]",
+			o;
+		child = child || {};	
+		for( o in parent ) {
+			if ( hasOwnP.call(parent, o) ) {
+				if( typeof parent[o] === "object" ) {
+					child[o] = toStr.call(parent[o]) === arrStr ? [] : {}; //array 的toString 已被改写
+					deepExtend(parent[o], child[o]);
+				} else {
+					child[o] = parent[o];
+				}
+			}
+		}
+		
+		return child;
+	}
+	
+	var dad = {
+		counts: [1, 2, 3],
+		reads: {paper: true}
+		};
+		var kid = deepExtend(dad);
+		console.dir(kid);
+		kid.counts.push(4);
+		console.log(kid.counts.toString()); 
+		console.log(dad.counts.toString()); 
+		console.log(dad.reads === kid.reads); 
+		kid.reads.paper = false;
+
+		kid.reads.web = true;
+		console.log(dad.reads.paper);
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html> 

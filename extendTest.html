@@ -1,0 +1,46 @@
+<!DOCTYPE html> 
+ <html> 
+ <head> 
+ <title> whatyouseeiswhatyouget </title>
+<script type="text/javascript" src="extend.js"></script>
+<script type="text/javascript">
+/*jslint sloppy:true,nomen:true */
+/*global Class:false,console:false */
+var dady = Class.extend({name: "aa",
+    ff: function () {
+        return "dady.ff";
+    }
+	});
+console.log(dady);
+console.dir(dady);
+
+var Son = dady.extend({
+	ff: function () {
+		return "son.ff" + this._super();
+	}
+});
+var s = new Son();
+console.log(s.ff());
+//console.log(dady.prototype.constructor === Class);
+console.dir(Son);
+console.log(Son);
+console.dir(s);
+
+if (1) {
+	alert("aa");
+}
+</script>
+</head>
+<body>
+
+<div id="page">
+	<div class="logo"></div>
+	<ul>
+		<li><a href=""></a></li>
+		<li><a href=""></a></li>
+		<li><a href=""></a></li>
+	</ul>
+</div>
+
+</body>
+</html>

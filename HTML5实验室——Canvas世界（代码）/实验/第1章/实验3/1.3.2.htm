@@ -1,0 +1,30 @@
+﻿<!DOCTYPE HTML>
+<html>
+<body>
+
+<canvas id="myCanvas" width="480" height="300" style="border:1px solid #c3c3c3;">
+Your browser does not support the canvas element.
+</canvas>
+<script type="text/javascript">
+
+    var c = document.getElementById("myCanvas");
+    var cxt = c.getContext("2d");
+    var x = 150;
+    var y = 150;
+    var r = 100;
+    cxt.moveTo(x - r, y);
+    for (var i = x - r; i < x + r + 1; i++) {
+        var tempY = Math.pow(r * r - (x - i) * (x - i), 1 / 2);
+        cxt.lineTo(i, y + tempY);
+    }
+    cxt.moveTo(x - r, y);
+    for (var i = x - r; i < x + r + 1; i++) {
+        var tempY = Math.pow(r * r - (x - i) * (x - i), 1 / 2);
+        cxt.lineTo(i, y - tempY);
+    }
+    cxt.stroke();
+
+</script>
+
+</body>
+</html>

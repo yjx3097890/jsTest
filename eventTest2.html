@@ -1,0 +1,35 @@
+﻿<!DOCTYPE hhtml>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+WWW
+</title>
+</head>
+<body>
+<div>
+xxxx
+</div>
+<button id="refresh" value="cc" class="a b c d" data-yjx="yjx" >刷新</button>
+<input type="text" id="name"></input>
+<input type="text" id="password"></input>
+</body>
+<script>
+var bt = document.getElementById("refresh");
+bt.addEventListener("onclick",function(){
+	alert("1");
+});
+
+var nt = document.getElementById("name");
+nt.addEventListener("focusout",function(event){
+	alert(this.id);
+	alert(event.clientX+","+event.clientY);
+});
+
+var pwd = document.getElementById("password");
+pwd.addEventListener("textInput",function(event){
+	alert(event.data);
+});
+</script>
+</html>

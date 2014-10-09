@@ -1,0 +1,32 @@
+﻿<!DOCTYPE HTML>
+<html>
+<body>
+    <canvas id="myCanvas" width="480" height="300" style="border: 1px solid #c3c3c3;">
+Your browser does not support the canvas element.
+</canvas>
+    <script type="text/javascript">
+        var c = document.getElementById("myCanvas");
+        var cxt = c.getContext("2d");
+        var x = 150;
+        var y = 150;
+        var r =400000;
+        var girth = 0;
+        for (var i = x - r; i < x + r + 1; i += 1) {
+            var tempY1 = Math.pow(r * r - (x - i) * (x - i), 1 / 2);
+            cxt.lineTo(i, y + tempY1);
+            var tempX = r * r - (x - i + 1) * (x - i + 1);
+            var tempY2 = Math.pow(r * r - (x - i + 1) * (x - i + 1), 1 / 2);
+            var temp = getLengthOfTwoPoint({ x: i - 1, y: tempY2 }, { x: i, y: tempY1 });
+            if (tempX >= 0) {
+                girth += temp;
+            }
+        }
+        alert("π的是值为：" + girth / r)
+        function getLengthOfTwoPoint(startPoint, endPoint) {
+            var calX = Math.abs(startPoint.x - endPoint.x);
+            var calY = Math.abs(startPoint.y - endPoint.y);
+            return Math.pow((calX * calX + calY * calY), 0.5);
+        }
+    </script>
+</body>
+</html>

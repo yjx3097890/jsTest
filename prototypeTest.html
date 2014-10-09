@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<script src="dist/jquery.js" ></script>
+<script>
+
+var fun = function (){console.log("hello");
+}
+var f = new fun();
+//alert(f);
+
+var func = new Function();
+console.log(func);
+
+var A = function() {};
+ console.log(A.prototype.constructor == A);
+ 
+ console.log("1"+Object.getPrototypeOf(A)== Function.prototype);
+ console.log("2"+Object.prototype);
+ console.log("3"+A.prototype);
+ alert( A.prototype.__proto__ == Object.prototype);
+ alert( A.__proto__ == Function.prototype);
+ console.log("4"+Function.prototype);
+ 
+ 
+ 
+// alert(A.tt);// undefined
+ 
+ 
+ var a = "a";
+var c = "a";
+var b = new String("a");
+console.log("a === c : " + (a === c));// true
+console.log("a == c : " + (a == c));// true
+console.log(a === b); //false
+$(function(){
+	function f(){
+	this.i = 1;
+	this.test = function(){
+	alert(this.i);
+	alert(this.innerHTML);
+	};
+$//("#b").click(this.test);  //不加括号表示指针，加了括号当作函数并执行
+}
+//f();
+var ff = new f();
+$("#b").click(ff.test); 
+
+function fff(){
+	this.i = 4;
+	var _self=this;
+	this.test = function(){
+		alert(_self.i);
+	};
+	$("#a").click(this.test);
+}
+fff();
+
+});
+
+
+</script>
+<div id ="b"> aa </div><br>
+<div id ="a"> bb </div>

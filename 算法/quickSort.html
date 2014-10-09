@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+	function quickSort(array,m,l){
+		var k,arrA,arrB;
+		if(l>m){
+			k=adjust(array,m,l);
+			quickSort(array,m,k-1);
+			quickSort(array,k+1,l);
+		}
+		
+	}
+	
+	function adjust(array,i,j){
+		var x=array[i];
+		while(i!=j){
+			    // 从右向左找小于x的数来填s[i]
+              while(i < j && array[j] >= x)
+				j--; 
+              if(i < j)
+              {
+                array[i] = array[j]; //将s[j]填到s[i]中，s[j]就形成了一个新的坑
+                i++;
+              }
+ 
+              // 从左向右找大于或等于x的数来填s[j]
+              while(i < j && array[i] < x)
+				i++; 
+              if(i < j)
+              {
+                array[j] = array[i]; //将s[i]填到s[j]中，s[i]就形成了一个新的坑
+                j--;
+              }
+		}
+		array[i]=x;
+		return i;
+	}
+	
+	var test=[2,5,3,2,6,7,5,4,9,22];
+	quickSort(test,0,test.length-1);
+	console.log(test);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>arc</title>
+       <script type="text/javascript" src="wind-all-0.7.3.js"></script>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3"></canvas>
+        <script type="text/javascript" src = "Vector2.js"></script>
+        <script type="text/javascript">
+            var canvas, context;
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            
+            var r = 100,
+            center = new Vector2(400, 300),
+            lineCount = 3;
+            
+            var draw = eval(Wind.compile("async",function() {
+           
+            while(true) {
+               
+                context.fillStyle="#000000";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                
+               drawPolygon(center, r, lineCount, "#ff0000")
+               lineCount++;
+               $await(Wind.Async.sleep(1000));
+               
+            }
+            
+            }));
+            
+            draw().start();
+            
+            function drawPolygon(center, radius, lineCount, color) {
+                var point = new Vector2(center.x, center.y - radius),
+                    alpha = Math.PI * 2 / lineCount,
+                    i=0;
+                context.beginPath();
+                context.strokeStyle = color || "#ffffff";
+                context.moveTo(point.x, point.y);
+                for (i = 0; i < lineCount; i++) {
+                    point.rotateByPoint(center, alpha);
+                    context.lineTo(point.x, point.y);
+                }
+                context.stroke();
+            }
+            
+            function distance(pointA, pointB) {
+                return Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
+            }
+            
+        </script>
+    </body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>ball-ball reflect</title>
+        <meta charset="utf-8"/>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="500" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src = "wind-all-0.7.3.js"></script>
+        <script type="text/javascript" src = "Vector2.js"></script>
+        <script type="text/javascript">
+            var  f = 50, g = 9.8,
+            canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d");
+            
+            var Ball = function(args) {
+                if( !args.velocity ) args.velocity = new Vector2(0, 0);
+                if( !args.acceleration ) args.acceleration = new Vector2(0,0);
+                if( !args.position ) args.position = new Vector2(0,0);
+                this.radius = args.r || 10;
+                this.mass = args.m || 10;
+                this.e = args.e || 1;
+                this.position = args.position.clone();
+                this.velocity = args.velocity.clone();
+                this.acceleration = args.acceleration.clone();
+            };
+            Ball.prototype.draw = function(color) {
+                 context.beginPath();
+                   context.fillStyle = color || "#fff";
+                   context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+                   context.closePath();
+                   context.fill();
+            };
+            Ball.prototype.hasImpactSide = function(canvas, direction) {
+                if(direction.up && this.position.y - this.radius <= 0) {
+                    return true;
+                }
+                if(direction.right && this.position.x + this.radius >= canvas.width) {
+                    return true;
+                }
+                if(direction.down && this.position.y + this.radius >= canvas.height) {
+                    return true;
+                }
+                if(direction.left && this.position.x - this.radius <= 0) {
+                    return true;
+                }
+                return false;
+            };
+            Ball.prototype.isTouchBall = function (another) {
+                return (this.position.getLengthToSquared(another.position) <= Math.pow(this.radius + another.radius, 2));
+            };
+            Ball.prototype.isCollisionBall = function (another) {
+                var isTouch = this.isTouchBall(another),
+                dir = this.position.clone().sub(another.position).normalize(), //this相对于another的位置
+                relativeV = another.velocity.clone().sub(this.velocity), //this相对于another的速度
+                dot = dir.dot(relativeV);
+                return isTouch && dot > 0;
+            };
+            Ball.prototype.collisionBall = function(another) {
+                if( this.isCollisionBall(another) ) {
+                        var vv = this.velocity.clone().sub(another.velocity).multiplyScalar(1 + this.e);
+                        this.velocity.sub(vv.clone().multiplyScalar( another.mass / ( this.mass + another.mass )));
+                        another.velocity.add(vv.clone().multiplyScalar( this.mass / (this.mass + another.mass)));
+                }
+                return this;
+            };
+            Ball.prototype.collisionLine = function (a, b) {
+                if (this.position.getDistanceToLine(a, b) <= this.radius) {
+                    var normal = a.sub(b).getVertical().normalize();
+                    this.velocity.reflect(normal);
+                }
+                return this;
+            };
+            Ball.prototype.move = function (time) {
+                this.position.x += this.velocity.x * time;
+                this.position.y += this.velocity.y * time;  
+                return this;
+            };
+            Ball.prototype.clone = function() {
+                var obj = new Ball();
+                for(var p in this) {
+                    if(this.hasOwnProperty(p)) {
+                        if( typeof this[p] === "object") {
+                            obj[p] = Object.create(this[p]);
+                        }else{
+                            obj[p] = this[p];
+                        }
+                    }
+                }
+                return obj;
+            };
+            
+        
+            
+            
+            
+            var draw = eval(Wind.compile("async", function() {
+            
+                var balls = [], i=0, ball, points = [] ,j =0 ,point, l=0, temp = 0;
+                
+                for (i=0; i < 20; i++) {
+                    temp = 12 * Math.random() + 6;
+                    ball = new Ball({
+                        position: new Vector2(canvas.width / 2  + 200 * Math.random() -100, canvas.height / 2 + 200 * Math.random()- 100),
+                        r: temp ,
+                        m: temp * 4,
+                        e: 1,
+                        velocity: new Vector2(Math.random() * 400 - 200, Math.random()  * 400 - 200)
+                    });
+                     l = balls.length;
+                    if (l === 0 ) {
+                        balls.push(ball);
+                    }else{
+                        temp = 0;
+                        for(j= 0; j<l; j++){
+                            if ( ball.isTouchBall(balls[j]) ) {
+                               temp++;
+                            }
+                        }
+                        if (temp === 0) {
+                               balls.push(ball);
+                        }
+                    }
+                }
+           
+                var num = 4;
+                var alpha = Math.PI * 2 / num ;
+                for(i=0; i< num; i++){
+                    point= new Vector2(canvas.width / 2   , canvas.height /2 );
+                    point.add(new Vector2( 300 * Math.sin(alpha * i - Math.PI / 5), 300 * Math.cos(alpha * i - Math.PI / 5) ));
+                    points.push(point);
+                }
+            
+
+                
+                 //频率f 太小时，防止背景变化
+                   context.fillStyle = "rgba(0, 0, 0, 1)";  
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    for (i=0; i < balls.length; i++ ) {
+                        balls[i].draw("#fff");
+                    }
+                    
+                
+                while(true){
+                    context.fillStyle = "rgba(0, 0, 0, 0.3)";  //实现残影效果
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                  
+                    context.strokeStyle = "#ffffff";
+                    context.beginPath();
+                    context.moveTo(points[0].x, points[0].y);
+                    for( j =1; j<points.length; j++) {
+                        context.lineTo(points[j].x, points[j].y );
+                    }
+                    context.closePath();
+                    context.stroke();
+                  
+                   
+                          //collisionBall
+                    for(i = 0 ; i < balls.length ; i++){
+                         for(j= i+1 ;j< balls.length;j++ ) {
+                            balls[i].collisionBall(balls[j]);
+                         }
+                    }
+                    
+                    for(i = 0 ; i < balls.length ; i++){
+                  
+                         balls[i].draw('#ffffff');
+                         
+                          //collision
+                        for(j =0; j<points.length-1; j++) {
+                           balls[i].collisionLine(points[j].clone(), points[j+1].clone() );
+                        }
+                        balls[i].collisionLine(points[j].clone(), points[0].clone() );
+                         
+                        balls[i].move(1/f);
+                          
+                  
+                    }
+             
+                 
+                   $await(Wind.Async.sleep(1000 / f));
+                   
+               
+                }
+                
+            })); 
+            
+           draw().start();
+        </script>
+    </body>
+</html>

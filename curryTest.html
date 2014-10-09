@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	function currilize(fn) {
+		var slice = Array.prototype.slice,
+			oldArg = slice.call(arguments, 1);
+		return function (obj) {
+			var newArg = slice.call(arguments, 1);
+				arg = oldArg.concat(newArg);
+			return fn.apply(obj, arg);
+		};
+	}
+	
+	function add(a, b, c, d, e){
+		return a + b + c + d + e;
+	}
+	
+	var add1 = currilize(add, 1, 2);
+	console.log(add1(null, 3, 4, 5));
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

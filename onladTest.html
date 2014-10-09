@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script>
+  
+        function t(){    
+            alert("t")    
+        }    
+        function b(){    
+            alert("b")    
+        }    
+        function c(){    
+            alert("c")    
+        }    
+        function addLoadEvent(func) {    
+            var oldonload = window.onload;    
+        
+            if (typeof window.onload != 'function') {    
+                window.onload = func;    
+            } else {    
+                window.onload = function() {    
+                oldonload();    
+               // alert(oldonload);//这是添加的测试代码    
+                func();    
+                }    
+            }    
+        }    
+    addLoadEvent(t);    
+    addLoadEvent(b);    
+    addLoadEvent(c);    
+    
+</script>
+
+</body>
+</html>

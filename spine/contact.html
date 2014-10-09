@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>contact app</title>
+        <link rel="stylesheet" href="contact.css" />
+        <script type="text/x-jquery-temp" id = "contactsTemplate">
+            <li class="item">
+            {{if fullName()}}
+                <span>${fullName()}</span>
+           {{else}}
+              <span>No Name</span>
+           {{/if}}
+          </li>
+        </script>
+	</head>
+    <body>
+        <header><h1>Í¨Ñ¶Â¼</h1></header>
+        <div id="sidebar">
+        	<ul class="items"></ul>
+            <footer>
+                <button>Ìí¼Ó</button>
+           </footer>
+        </div>
+      <div class="vdivide"></div>
+      <div id="contacts">
+        	<div class="show">
+        		<ul class="options">
+        			<li class="optEdit">±à¼­</li>
+        		</ul>
+            <div class="content"></div>
+        	</div>
+            <div class="edit">
+                <ul class="options">
+                    <li class="optSave">±£´æ</li>
+                    <li class="optDelete">É¾³ý</li>
+                </ul>
+                <div class="content"></div>
+            </div>
+      </div>
+      <script type="text/javascript" src="spine.js"></script>
+        <script type="text/javascript" src="jquery.js"></script>
+    	<script type="text/javascript">
+            
+        </script>
+    </body>
+</html>

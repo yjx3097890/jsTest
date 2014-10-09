@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>webGL</title>
+<script type="text/javascript" src="Oak3D_v_0_5.js"></script>
+<script type="x-webgl/x-vertex-shader" id="vertex">
+attribute vec3 aVertexPosition;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+
+void main(){
+	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition,1.0);
+}
+</script>
+<script type="x-webgl/x-fragment-shader" id="fragment">
+    precision mediump float;
+
+    void main() {
+        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+    }
+</script>
+</head>
+<body onload="start();">
+<canvas id="webgl" width="500px" height="500px">sorry</canvas>
+
+<script>
+var gl,program,buffer, mvMatrix,
+    pMatrix;
+
+function initGL(canvas){
+	
+	try{
+		gl=canvas.getContext("experimental-webgl");
+		gl.viewportWidth = canvas.width;
+		gl.viewportHeight = canvas.height;
+	}catch(e){}
+	if(!gl){
+		alert("sorry,");
+	}
+	return gl;
+}
+
+
+function initBuffers(){
+	var vertices = [  0.0, 1.0, 0.0,
+            -1.0, -1.0,0.0,
+             1.0, -1.0,0.0];
+	buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+	
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices),gl.STATIC_DRAW);
+	buffer.itemSize = 3;
+	buffer.numItems = vertices.length / buffer.itemSize;
+	
+	return buffer;
+}
+
+function deleteBuffer(buffer){
+	gl.deleteBuffer(buffer);
+}
+
+function getShader(gl,id){
+	var shader;
+	var glslScript = document.getElementById(id);
+	if(!glslScript){
+		return null;
+	}
+	var glsl = glslScript.text;
+	
+	if(glslScript.type=="x-webgl/x-vertex-shader"){
+		 shader= gl.createShader(gl.VERTEX_SHADER);
+	}else if(glslScript.type=="x-webgl/x-fragment-shader"){
+		 shader= gl.createShader(gl.FRAGMENT_SHADER);
+	}else{
+		return null;
+	}
+	
+	gl.shaderSource(shader,glsl);
+	gl.compileShader(shader);
+	
+	
+	if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
+		console.error(gl.getShaderInfoLog(shader));
+		return null;
+	}
+	return shader;
+}
+function initShaders(fid,vid){
+	var vshader=getShader(gl,vid);
+	var fshader=getShader(gl,fid);
+	program = gl.createProgram();
+	
+	gl.attachShader(program,fshader);
+	gl.attachShader(program, vshader);
+	gl.linkProgram(program);
+	
+	if(!gl.getProgramParameter(program,gl.LINK_STATUS)){
+		console.error(gl.getProgramInfoLog(program));
+		return null;
+	}
+	
+	gl.useProgram(program);
+	  
+	program.aVP = gl.getAttribLocation(program,"aVertexPosition");
+	gl.enableVertexAttribArray(program.aVP);
+
+	program.pMatrixUniform = gl.getUniformLocation(program, "uPMatrix");
+    program.mvMatrixUniform = gl.getUniformLocation(program, "uMVMatrix");
+	
+//	program.uColor = gl.getUniformLocation(program, "uColor");
+	return program;
+}
+//这样做没用，因为一次只能生成一个
+function getErrors(){
+	var errors = new Array();
+	var error = gl.getError();
+	while(error){
+		errors.push(error);
+		error=gl.getError();
+	}
+	return errors;
+}
+
+
+
+    function setMatrixUniforms() {
+        gl.uniformMatrix4fv(program.pMatrixUniform, false, pMatrix.toArray());
+        gl.uniformMatrix4fv(program.mvMatrixUniform, false, mvMatrix.toArray());
+    }
+	
+    function drawScene() {
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        pMatrix = okMat4Proj(30, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+		
+        mvMatrix = okMat4Trans(0.0, 0.0, -7);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.vertexAttribPointer(program.aVP, buffer.itemSize, gl.FLOAT, false, 0, 0);
+        setMatrixUniforms();
+        gl.drawArrays(gl.TRIANGLES, 0, buffer.numItems);
+
+       
+    }
+
+	
+function start() {
+		var canvas = document.getElementById("webgl");
+		initGL(canvas);
+		initBuffers();
+		initShaders("fragment","vertex");
+		 gl.clearColor(0.0, 0.0, 1.0, 0.5);
+		 gl.enable(gl.DEPTH_TEST);
+		drawScene() ;
+}
+</script>
+
+
+
+
+</body>
+</html>

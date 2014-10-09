@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript" src="spine.js"></script>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript">
+    var User = Spine.Class.create({
+        name : "yjx",
+        init:function (cat) {
+            this.pet = cat;
+          
+        },
+        created: function () {
+            console.log(this, "create");
+        }
+    }),
+    SubUser = User.sub({name :"qq", age : 3});
+    
+    User.extend(Spine.Events);
+    
+  var u1 = new User("lili"),
+    u2 = new SubUser;
+    
+    
+ //   console.dir(u1);
+ //   console.dir(u2);
+    
+   var Task = Spine.Model.setup("task", ["name" , "work"]);
+    var t1 = new Task({name : "t1"});
+    t1.save();
+    var pending = Task.select(function(task){ return !task.name });
+    
+//console.dir(Task); 
+//console.dir(pending); 
+//console.dir(t1.attributes()); 
+//console.dir(Task.find(t1.id)); 
+t1.destroy();
+//console.log(t1.exists());
+  
+  
+    var Sidebar = Spine.Controller.create({
+    proxied: ["change"],
+    init: function(){
+    
+    console.log(this);
+    },
+    change: function(name){ /* ... */ }
+    });
+    
+    var sb = new Sidebar();
+    console.dir(sb);
+    
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

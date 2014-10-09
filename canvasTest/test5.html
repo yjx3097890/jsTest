@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>bird nest</title>
+        <meta charset="utf-8"/>
+	</head>
+    <body>
+    	<canvas id="canvas" width="1300" height="600" style="border:1px solid #d3d3d3;"></canvas>
+        <script type="text/javascript" src = "wind-all-0.7.3.js"></script>
+        <script type="text/javascript">
+            var canvas, context, alpha = 0 , dif = 100;
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+            
+            drawEllipse1(canvas.width/2, canvas.height/2, 200, 300);
+            drawEllipse2(canvas.width/2, canvas.height/2, 300, 200);
+           
+           var drawEllipse = drawEllipse1;
+            context.translate(canvas.width / 2, canvas.height / 2);
+            
+            var draw = eval(Wind.compile("async", function() {
+                while(true){
+                    if( alpha > Math.PI * 2) break;
+                    alpha +=  Math.PI * 2 / dif;
+                    context.rotate(Math.PI * 2 / dif);
+                     $await(Wind.Async.sleep(50));
+                    drawEllipse(0, 0, 400, 200);
+                }
+            }));
+            draw().start();
+           
+           //注意x，y是中心点坐标 
+           //此方法先把椭圆的中心当作原点再移动
+            function drawEllipse1(x, y, width, height) {
+                var dif = 10, i = 0, deltaX = 0;
+                context.beginPath();
+                context.moveTo(x - width / 2, y);
+                for(i = 0;i < width * 2 * dif; i++){
+                    deltaX += 1 / dif;
+                    context.lineTo(x - width / 2 + deltaX, - height/2 * Math.sqrt(1 - Math.pow((x - width / 2 + deltaX - x)/ width * 2, 2)) + y);
+                } 
+                deltaX = 0;
+                for(i = 0;i < width * 2 * dif; i++){
+                    deltaX += 1 / dif;
+                    context.lineTo(x + width / 2 - deltaX,  height/2 * Math.sqrt(1 - Math.pow((x + width / 2 - deltaX - x)/ width * 2, 2)) + y);
+                }
+                context.closePath();
+   
+                context.stroke();
+            }
+            
+            //用三次贝塞尔曲线模拟椭圆
+                //x ,y 为椭圆圆心
+            function drawEllipse2(x, y, width, height) {
+                var k = 0.55228475,
+                  halfW = width / 2,
+                  halfH = height / 2,
+                  deltaX = k * halfW,
+                  deltaY = k * halfH;
+                  
+                context.beginPath();
+                context.moveTo(x - halfW, y); 
+                context.bezierCurveTo(x - halfW, y - deltaY, x - deltaX, y - halfH, x, y - halfH);
+                context.bezierCurveTo(x + deltaX, y - halfH, x + halfW, y - deltaY, x + halfW, y);
+                context.bezierCurveTo(x + halfW, y + deltaY, x + deltaX, y + halfH, x, y + halfH);
+                context.bezierCurveTo(x - deltaX, y + halfH, x - halfW, y + deltaY, x - halfW, y);  
+                context.stroke();
+                
+            }
+            
+          
+        </script>
+    </body>
+</html>

@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+contextmenu
+</title>
+</head>
+<body>
+<div>
+<form name="yjx">
+<input type="text" name="name"></input><br/>
+<input type="text" name="tel1" size="4" maxLength="4"></input>
+-
+<input type="text" name="tel1" size="4" maxLength="4"></input>
+-
+<input type="text" name="tel1" size="4" maxLength="4"></input>
+
+</form>
+</div>
+
+</body>
+<script>
+(function(){
+var form  = document.forms["yjx"];
+form.addEventListener("select",function(event){
+	var target = event.target;
+//	alert(target.value.substring(target.selectionStart,target.selectionEnd));
+	var sel = document.selection;
+	if(!sel){
+		sel=window.getSelection();
+	}else{
+		console.log(sel.createRange().text);
+	}
+	for(var s in sel){
+		console.log(s+"==>"+sel[s]);
+	}
+	console.log(sel.toString());
+});
+
+form.addEventListener("keyup",function(event){
+	var tar = event.target;
+	if(tar.value.length==tar.maxLength &&tar.nextElementSibling){
+		tar.nextElementSibling.focus;
+		tar.nextElementSibling.select();
+		
+	}
+});
+
+form.addEventListener("paste",function(event){
+	var tar = event.target;
+	if(tar.value.length==tar.maxLength &&tar.nextElementSibling){
+		tar.nextElementSibling.focus;
+		tar.nextElementSibling.select();
+		
+	}
+});
+
+})();
+</script>
+</html>

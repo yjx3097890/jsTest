@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+
+<script type="text/javascript">
+//排序时必须从低位到高位，并且各个数字必须为整数,每个数字的位数不超过d
+	function radixSort(array, d){
+        var i;
+        for (i=0; i<d; i++) {
+            array = countSort(array, i);
+        }
+        return array;
+	}
+    //对第k位进行计数排序
+    //需要一个序数数组10个单位长度和一个排序后存放数组
+    var countSort = function (array, k) {
+        var len = array.length, result = [], temp = [0,0,0,0,0,0,0,0,0,0], i, t;
+        for (i=0; i<len; i++) {
+            t = getIndex(array[i], k);
+           temp[t]++;
+        }
+        //计算 temp[i] <= i 的个数  
+        for (i=1; i <10; i++ ) {
+            temp[i] = temp[i] + temp[i-1];
+        }
+        //从大到小,否则第二次会把第一次已排好的倒置（temp[t]--）
+        for (i=len-1; i>=0; i--) {
+            t = getIndex(array[i], k);
+            result[temp[t]-1] = array[i];
+            temp[t]--;
+        }
+        return result;
+    };
+    var getIndex = function (a, index) {
+        if (typeof a !== "number") {
+            return false;
+        }
+        a = parseInt(a);
+        var len = Math.floor(Math.log(a) / Math.log(10)) + 1;
+        if (index<len) {
+            return Math.floor (a % Math.pow(10, index + 1) / Math.pow(10, index));
+        }else {
+            return 0;
+        }
+    };
+	
+    var test = [2,4,6,2,3,74,5,6,8,95];
+	
+	console.log(radixSort(test,2));
+</script>
+</body>
+</html>

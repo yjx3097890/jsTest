@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+<script type="text/javascript">
+	var onerror = function(event){
+		console.log(event.target.errorCode);
+	};
+	console.log(localStorage instanceof Storage);
+	console.log(indexedDB);
+	var request,database,store;
+	
+	request = indexedDB.open("test");
+	request.onerror=onerror;
+	request.onsuccess=function(event){
+		database=event.target.result;
+		if(database.version != "2.0"){
+			request=database.setVersion("2.0");
+			request.onerror=onerror;
+			request.onsuccess=function(event){
+				console.log(database.name+":"+database.version);
+			}
+		}else{
+			console.log(database.name+":"+database.version);
+		}
+		console.log(database.objectStoreNames.contains('students'));
+		store=database.createObjectStore("students",{keyPath:"id"});
+		request.onupgradeneeded = function(event) {
+			// event.target.trans is a "changeversion" transaction
+			 
+			// create an object store called "swamp"
+			// and define an optional parameter object, the "terrorizedPopulace" keyPath.        
+			// The keyPath must be what makes an object unique and every object must have it.  
+			// If every creature had a unique identification number, that would also be a good keyPath. 
+				 
+			store = database.createObjectStore("swamp",{keyPath: "terrorizedPopulace"});
+		}
+		
+		request = store.add({id:1,name:"yjx"});
+		request.onerror=onerror;
+		request.onsuccess=function(){
+			console.log("success");
+		};
+	};
+//	alert(database.version);
+	
+</script>
+
+</body>
+</html>

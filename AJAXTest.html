@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+</head>
+<body>
+
+
+<script type="text/javascript">
+var sev = "fatal";
+	var msg= "ssss";
+	
+	var xhr = new XMLHttpRequest();
+	xhr.addEventListener("load",function(){
+		alert(xhr.responseText);
+	});
+	
+	xhr.open("get","http://iot.rkcloud.cn/log?sev="+encodeURIComponent(sev)+"&msg="+encodeURIComponent(msg));
+	xhr.setRequestHeader("Origin","file:///C:/Users/jixian/Desktop/jsTest/AJAXTest.html");
+	xhr.send(null);
+	
+</script>
+</body>
+</html>

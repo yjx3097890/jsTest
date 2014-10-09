@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script type="text/javascript">
+	var alertMe = function () {
+		alert("first");
+//		arguments.callee = function () {
+		alertMe = function () {
+			alert("second");
+		};
+	};
+	
+//	alertMe();
+//	alertMe();
+//	alertMe();
+	
+	alertMe.message = "hello";
+	
+	var alertYou = alertMe;
+	
+	var boo = {
+		alert : alertMe
+	};
+	
+	alertYou();
+	alertYou();
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

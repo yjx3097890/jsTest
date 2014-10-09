@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<!--
+bind方法会创建一个新函数,称为绑定函数.当调用这个绑定函数时,绑定函数会以创建它时传入bind方法的第一个参数作为this,传入bind方法的第二个以及以后的参数加上绑定函数运行时本身的参数按照顺序作为原函数的参数来调用原函数.
+fun.bind(thisArg[, arg1[, arg2[, ...]]])
+参数
+thisArg
+当绑定函数被调用时,该参数会作为原函数运行时的this指向.当使用new 操作符调用绑定函数时,该参数无效.
+arg1, arg2, ...
+当绑定函数被调用时,这些参数加上绑定函数本身的参数会按照顺序作为原函数运行时的参数.
+-->
+<script type="text/javascript">
+
+function mybind(obj, fn) {
+	var args = [].slice.call(arguments, 2);
+	return function () {
+		return fn.apply(obj, args.concat(arguments));
+	};
+}
+
+var a = {
+	name: "lili",
+	getName: function (str) {
+		return this.name + "_" + str;
+	}
+};
+var b = {
+	name: "blili"
+};
+b.getName = a.getName;
+console.log(b.getName("hello"));
+getName = mybind(a, a.getName , "hi");
+console.log(getName("hello"));
+
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>

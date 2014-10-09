@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+WWW
+</title>
+</head>
+<body>
+<div>
+xxxx
+</div>
+<button id="refresh" value="cc" class="a b c d" data-yjx="yjx" onclick="alert(id);">刷新</button>
+</body>
+<script>
+var bt = document.getElementById("refresh");
+bt.attachEvent("onclick",function(){
+	alert("1");
+});
+bt.al = function(event){
+for(var i in event){
+
+	console.log(i +"==>"+ event[i]);
+}
+	//alert(id);
+	with(bt){
+			alert(id);
+			alert(this);
+			
+	}
+	};
+	bt.wrap=function(event){
+		bt.al(event);
+	}
+bt.attachEvent("onclick",bt.wrap);
+</script>
+</html>

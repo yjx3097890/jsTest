@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  h1= title
+  if message
+    p #{message}
+  form(method='post', action='/login')
+    input(type='text', name='username' value='#{username || ""}')
+    input(type='password', name='password')
+    input(type='submit', value='提交')
+    input(type='reset', value='重置')
