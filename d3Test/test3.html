@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>d3</title>
+  </head>
+  <body>
+  <style>
+  .chart rect {
+    fill: steelblue;
+  }
+  .chart text {
+    fill: black;
+    font: 10px sans-serif;
+    text-anchor: end;
+  }
+  </style>
+<!--
+  x,y 都是相对于父元素定位
+  svg的几何信息必须指定为（attributes）属性，样式信息可以放到style中，也可以指定为属性。
+  dy表示相对于元素当前位置沿y轴偏移
+
+ -->
+  <svg class="chart" width="420" height="120">
+    <g transform="translate(0,0)">
+      <rect width="40" height="19"></rect>
+      <text x="2" y="2" dy="0em">4</text>
+    </g>
+    <g transform="translate(0,20)">
+      <rect width="80" height="19"></rect>
+      <text x="77" y="9.5" dy=".35em">8</text>
+    </g>
+    <g transform="translate(0,40)">
+      <rect width="150" height="19"></rect>
+      <text x="147" y="9.5" dy=".35em">王</text>
+    </g>
+    <g transform="translate(0,60)">
+      <rect width="160" height="19"></rect>
+      <text x="157" y="9.5" dy=".35em">16</text>
+    </g>
+    <g transform="translate(0,80)">
+      <rect width="230" height="19"></rect>
+      <text x="227" y="9.5" dy=".35em">23</text>
+    </g>
+    <g transform="translate(0,100)">
+      <rect width="420" height="19"></rect>
+      <text x="417" y="9.5" dy=".35em">42</text>
+    </g>
+  </svg>
+
+
+  <div class="contain">
+  </div>
+  <svg class="chart" id="char1">
+  </svg>
+
+
+    <script src="d3.js" charset="utf-8"></script>
+    <script type="text/javascript">
+    var data = [4,8,15,16,23,42];
+     var width = 420,
+     bheight = 20;
+
+     var x = d3.scale.linear().domain([0, d3.max(data)]).range([0, width]);
+
+     var chart = d3.select('.contain').append('svg').attr('class', 'chart').attr('width',width).attr('height', bheight* data.length);
+     var bars = chart.selectAll('g').data(data).enter().append('g').attr('transform',
+     function (d, n){
+       return 'translate(0, ' + n * bheight +')';
+     });
+     bars.append('rect').attr('width', x).attr('height', bheight-1);
+     bars.append('text').attr('x', function (d) {return x(d)-3}).attr('y', bheight/2).
+     attr('dy', '0.35em').text(function (d) {return d});
+
+
+     var char1 = d3.select('#char1').attr('width', width);
+     var x1 = d3.scale.linear().range([0, width]);
+     d3.tsv('test.tsv',type, function (err, data) {
+//        var data = [
+//   {name: "Locke",    value:  4},
+//   {name: "Reyes",    value:  8},
+//   {name: "Ford",     value: 15},
+//   {name: "Jarrah",   value: 16},
+//   {name: "Shephard", value: 23},
+//   {name: "Kwon",     value: 42}
+// ];
+
+       x1.domain([0, d3.max(data, function (d) { return d.value})]);
+       char1.attr('height', data.length * bheight);
+
+       var bars1 = char1.selectAll('g').data(data).enter().append('g').attr('transform',
+       function (d, n){
+         return 'translate(0, ' + n * bheight +')';
+       });
+       bars1.append('rect').attr('width', function (d) { return x1(d.value)}).attr('height', bheight-1);
+       bars1.append('text').attr('x', function (d) {return x(d.value)-3}).attr('y', bheight/2).
+       attr('dy', '0.35em').text(function (d) {return d.value});
+
+     });
+
+
+     function type (d) {
+       d.value = +d.value;   //类型转换
+       return d;
+     }
+    </script>
+  </body>
+</html>

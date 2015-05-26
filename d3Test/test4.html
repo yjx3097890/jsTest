@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <style media="screen">
+    .chart rect {
+      fill: steelblue;
+      }
+
+      .axis text {
+      fill: black;
+      font: 10px sans-serif;
+      text-anchor: middle;
+      }
+
+      .axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+/*.x.axis path {
+  display: none;
+}*/
+    </style>
+  </head>
+  <body>
+
+    <svg id="chart" class='chart'></svg>
+
+<!--
+rangeBands :计算range值，分割连续的区域使其与离散domain对应
+rangePoints : 同上
+rangeRoundBands：同rangeBands，但 range值是整数，防止锯齿
+ -->
+<script src="d3.js" charset="utf-8"></script>
+<script type="text/javascript">
+var margin = {top: 20, right: 30, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+
+  var barWidth;
+  var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width],0.1);
+
+  var y = d3.scale.linear().range([ height, 0]);
+
+  var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom");
+
+      var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left").ticks(10, "%");
+
+
+  var chart = d3.select("#chart")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+
+  d3.tsv('test.tsv', parseint, function (err, data) {
+  x.domain(data.map(function (d) { return d.name;}));
+  //  barWidth = width/ data.length;
+
+       y.domain([0, d3.max(data, function (d){
+         return d.value;
+       })]);
+
+
+       chart.append("g")
+           .attr("class", "x axis")
+           .attr("transform", "translate(0," + height + ")")
+           .call(xAxis);
+
+           chart.append("g")
+                .attr("class", "y axis")
+                .call(yAxis).append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("Frequency");
+
+    var bars = chart.selectAll('.bar').data(data).enter()
+    // .append('g').attr('transform',
+    //  function (d, n) {
+    //    return "translate("+x(d.name)+","+ 0  +")";
+    //  });
+
+       bars.append('rect').attr('width', x.rangeBand()).attr('height', function (d) {return height - y(d.value);})
+       .attr('y', function (d) {return y(d.value)}).attr('x', function (d) {return x(d.name);});
+      // bars.append('text').attr('x', x.rangeBand()/2 ).attr('y',
+      // function (d) {
+      //   return y(d.value) + 3 ;
+      // }).attr("dy", ".75em").text(function (d) { return d.value;})
+
+  });
+
+  function parseint(d) {
+    d.value = new Number(d.value);
+    return d;
+  }
+</script>
+  </body>
+</html>

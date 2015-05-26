@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+建造selection：
+d3.select
+d3.selectAll
+selection.append 返回新的selection
+selection.data 连接数据
+selection.attr
+selection.style
+selection.property
+d3.format
+d3.scale  计算比例
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>d3</title>
+  </head>
+  <body>
+  <style>
+
+  .chart div,.chart2 div {
+    font: 10px sans-serif;
+    background-color: steelblue;
+    text-align: right;
+    padding: 3px;
+    margin: 1px;
+    color: white;
+    width: :0px;
+  }
+
+  </style>
+  <div class="chart">
+    <div style="width: 40px;">4</div>
+    <div style="width: 80px;">8</div>
+    <div style="width: 150px;">15</div>
+    <div style="width: 160px;">16</div>
+    <div style="width: 230px;">23</div>
+    <div style="width: 420px;">42</div>
+  </div>
+
+  <div class="chart2">
+
+  </div>
+
+    <script src="d3.js" charset="utf-8"></script>
+    <script type="text/javascript">
+    var data = [4, 8, 15, 16, 23, 42];
+    var x = d3.scale.linear()
+    .domain([0, d3.max(data)])
+    .range([0, 420]);
+      d3.select('.chart2').selectAll('div').data(data).enter().append('div').style('width',0).
+      transition().duration(1000).style('width', function (d) {
+        return x(d) + 'px';
+      }).text(function (d) { return d});
+    </script>
+  </body>
+</html>
