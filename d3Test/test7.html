@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>d3</title>
+  </head>
+  <body>
+<p>
+  3
+</p>
+<p>
+  3
+</p><p>
+  3
+</p>
+
+
+    <script src="d3.js" charset="utf-8"></script>
+    <script type="text/javascript">
+  //  d3.select("body").style('background-color', 'red').
+  //  transition().delay(750)
+  //      .style("background-color", "black");
+
+  //  d3.select("body").
+  //  transition().delay(750)
+  //  .each('start',function () {     //变换时才触发
+  //    d3.select(this).style("background-color", "red");
+  //  })
+  //      .style("background-color", "black");
+
+  d3.select("body").transition().delay(750)
+    .styleTween("background-color", function() { return d3.interpolate("green", "red"); });
+// 1e-6是最小的不格式化为指数形式的值
+
+
+    </script>
+  </body>
+</html>
