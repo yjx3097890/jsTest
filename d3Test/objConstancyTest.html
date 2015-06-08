@@ -181,12 +181,12 @@ function redraw() {
       .style("fill-opacity", 0)
       .remove();
 
-  barExit.select("rect")
-      .attr("width", function(d) { return x(d[age]); });
-
-  barExit.select(".value")
-      .attr("x", function(d) { return x(d[age]) - 3; })
-      .text(function(d) { return format(d[age]); });
+  // barExit.select("rect")
+  //     .attr("width", function(d) { return x(d[age]); });
+  //
+  // barExit.select(".value")
+  //     .attr("x", function(d) { return x(d[age]) - 3; })
+  //     .text(function(d) { return format(d[age]); });
 
   d3.transition(svg).select(".x.axis")
       .call(xAxis);
