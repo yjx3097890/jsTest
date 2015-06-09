@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title></title>
+      <style media="screen">
+
+
+
+#example {
+  margin-left: -20px;
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.area {
+  fill: #969696;
+}
+
+.axis line{
+fill: none;
+stroke: black;
+shape-rendering: crispEdges;
+}
+
+
+
+
+
+
+      </style>
+    </head>
+    <body>
+
+     <p id='example'>
+
+     </p>
+
+<script src="d3.js" charset="utf-8"></script>
+<script src="time-series-chart.js" charset="utf-8"></script>
+<script src="TimeSeriesChart.js" charset="utf-8"></script>
+<script>
+
+d3.csv("sp500.csv", function(data) {
+  // var formatDate = d3.time.format("%b %Y");
+  //
+  // d3.select("#example")
+  //     .datum(data)
+  //   .call(timeSeriesChart()
+  //     .x(function(d) { return formatDate.parse(d.date); })
+  //     .y(function(d) { return +d.price; }));
+
+  var chart = new TimeSeriesChart();
+  chart.init('example').extractData(data).draw();
+});
+
+</script>
+    </body>
+  </html>
