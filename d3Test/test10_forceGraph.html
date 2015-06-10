@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>d3</title>
+    <style media="screen">
+      .link {
+        stroke: #C1C1C1;
+        fill: none;
+        stroke-opacity: .6;
+      }
+
+      .node {
+        stroke: #fff;
+        stroke-width: 1.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart"></div>
+
+    <script src="d3.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      var width = 960;
+      var height = 500;
+      var color = d3.scale.category20();
+
+      var force = d3.layout.force()
+    .charge(-120)  //两球之间的作用力，负排斥、正吸引
+    .friction(0.9)  //阻尼系数
+    .linkStrength(0.1) // [0,1] 设置连接的刚度
+    .gravity(0.1)  //将node连接到中心的力
+    .theta(0.8)   //不清楚
+    .alpha(0) //冷却系数， 大于0 继续动，小于等于0处于静止状态。不碰它会慢慢变小
+    .linkDistance(30)  //连接的距离
+    .size([width, height]);   //力学区域大小，size 影响重心位置和节点初始位置
+
+    var svg = d3.select('#chart').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+    d3.json('miserables.json', function (err, data) {
+      force
+      .nodes(data.nodes)
+      .links(data.links)
+      .start();
+
+      var link = svg.selectAll('.link')
+      .data(data.links)
+      .enter().append('line')
+      .classed('link', true)
+      .style('stroke-width', function (d) {
+        return Math.sqrt(d.value);
+      });
+
+      var node = svg.selectAll('.node')
+      .data(data.nodes)
+      .enter().append('circle')
+      .attr("class", "node")
+      .attr("r", 5)
+      .style("fill", function(d) { return color(d.group); })
+      .call(force.drag);
+
+      node.append('title')
+      .text(function (d) {
+        return d.name;
+      });
+
+      force.on('tick', function () {    //tick事件中定义自定义的力和约束， 没一帧都触发一次
+        link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+        node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+      });
+    })
+
+    </script>
+  </body>
+  </html>
