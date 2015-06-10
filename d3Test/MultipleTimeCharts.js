@@ -3,13 +3,14 @@ function MultipleTimeChart(option) {
   if (!option) {
     option = {};
   }
-  this.margin = option.margin || {top: 20, right: 20, bottom: 20, left: 20};
+  this.margin = option.margin || {top: 10, right: 40, bottom: 150, left: 60};
   this.width = option.width || 960;
   this.height = option.height || 500;
-  this.radius = option.radius || 5;
+  this.contextWidth = (this.width - this.margin.left - this.margin.right) / 2;  //时间框的宽度
+  this.contextHeight = option.contextWidth || 50;
   this.color = d3.scale.category20();
   this.shape = {};
-  this.data = {};
+  this.data = null;
   this.svg = null;
 }
 
@@ -20,15 +21,12 @@ var prototype = MultipleTimeChart.prototype = {
 
     var that = this;
 
-    this.force = d3.layout.force()
-      .linkDistance(10)
-      .linkStrength(2)
-      .size([this.width, this.height]);
-
-
-    this.svg =  d3.select('#'+id).append('svg')
+    this.svg =  d3.select('#'+id)
+        .append('svg')
         .attr("width", this.width)
         .attr("height", this.height);
+
+   
 
     return this;
   },
@@ -36,20 +34,30 @@ var prototype = MultipleTimeChart.prototype = {
   extractData: function (data) {
     var that = this;
     this.data = {};
-    this.data.nodes = data.nodes;
-    this.data.links = [];
-    this.data.bilinks = [];
+    this.data.contries = [];
+    this.data.maxPoint = 0;
+    var formatDate = d3.time.format('%Y');
 
-    var  nodes = this.nodes = data.nodes.slice(); //克隆了一份
+    for (var prop in data[0]) {
+      if (data[0].hasOwnProperty(prop) && prop !== 'Year') {
+        this.data.contries.push(prop);
+      }
+    }
+    this.data.data = data.map(function (d) { //g格式转换
+      for (var prop in that.data.contries) {
+    		if (d.hasOwnProperty(prop)) {
+    			d[prop] = +d[prop];
 
-    data.links.forEach(function(link) {
-       var s = nodes[link.source],
-           t = nodes[link.target],
-           i = {}; // 过渡节点
-       nodes.push(i);
-       that.data.links.push({source: s, target: i}, {source: i, target: t});
-       that.data.bilinks.push([s, i, t]);
-     });
+    			if (d[prop] > that.data.maxPoint) {
+            that.data.maxPoint = d[prop];
+    			}
+    		}
+      }
+      d.Year = formatDate.parse(d.Year);
+      return d;
+    });
+
+
 
     return this;
   },

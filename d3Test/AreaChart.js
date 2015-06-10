@@ -1,5 +1,5 @@
 
-function TimeSeriesChart(option) {
+function AreaChart(option) {
   if (!option) {
     option = {};
   }
@@ -13,8 +13,8 @@ function TimeSeriesChart(option) {
   this.svg = null;
 }
 
-var prototype = TimeSeriesChart.prototype = {
-  constructor: timeSeriesChart,
+var prototype = AreaChart.prototype = {
+  constructor: AreaChart,
 
   init: function (id) {
 
