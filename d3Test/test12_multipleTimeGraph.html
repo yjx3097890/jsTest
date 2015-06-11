@@ -4,18 +4,78 @@
     <meta charset="utf-8">
     <title>d3</title>
     <style media="screen">
+    h1{
+      margin-bottom: 0;
+    }
 
+    p{
+      margin-top: 0;
+    }
+
+    svg {
+      font: 10px sans-serif;
+    }
+
+    g.context g.brush rect.background{
+      fill: rgba(0,0,0,.1);
+    }
+
+    g.context g.axis path{
+      stroke-opacity: 0;
+    }
+
+    g.context g.axis line{
+      stroke-opacity: .1;
+    }
+
+    g.france path.chart{
+      fill: rgb(127,201,127);
+    }
+
+    g.germany path.chart{
+      fill: rgb(190,174,212);
+    }
+
+    g.japan path.chart{
+      fill: rgb(253,192,134);
+    }
+
+    g.uk path.chart{
+      fill: rgb(255,255,153);
+    }
+
+    g.usa path.chart{
+      fill: rgb(56,108,176);
+    }
+
+    .axis path, .axis line {
+      fill: none;
+      stroke: #000;
+       shape-rendering: crispEdges;
+    }
+
+    .brush .extent {
+       stroke: #fff;
+       fill-opacity: .125;
+       shape-rendering: crispEdges;
+    }
+
+    g.context rect.background{
+         fill:rgb(200,200,255);
+         visibility: visible !important;
+    }​
     </style>
   </head>
   <body>
     <div id="chart"></div>
 
     <script src="d3.js" charset="utf-8"></script>
+    <script src="AreaChart.js" charset="utf-8"></script>
     <script src="MultipleTimeCharts.js" charset="utf-8"></script>
     <script type="text/javascript">
     var chart = new MultipleTimeChart();
     d3.csv("ElectricityConsumptionData.csv", function(error, data) {
-        console.log(data);
+
         chart
         .init('chart')
         .extractData(data)

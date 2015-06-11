@@ -6,8 +6,8 @@ function MultipleTimeChart(option) {
   this.margin = option.margin || {top: 10, right: 40, bottom: 150, left: 60};
   this.width = option.width || 960;
   this.height = option.height || 500;
-  this.contextWidth = (this.width - this.margin.left - this.margin.right) / 2;  //时间框的宽度
-  this.contextHeight = option.contextWidth || 50;
+  this.brushWidth = (this.width - this.margin.left - this.margin.right) / 2;  //时间框的宽度
+  this.brushHeight = option.brushWidth || 50;
   this.color = d3.scale.category20();
   this.shape = {};
   this.data = null;
@@ -26,8 +26,22 @@ var prototype = MultipleTimeChart.prototype = {
         .attr("width", this.width)
         .attr("height", this.height);
 
-   
+    this.xAxisTop = d3.svg.axis().orient('bottom');
+    this.xAxisBottom = d3.svg.axis().orient('top');
 
+    this.brush = d3.svg.brush();
+
+    this.charts = [];
+    this.shape.brush = this.svg.append('g')
+    .classed('context', true)
+    .attr('transform', 'translate(' + (this.width * .25) + ',' + (this.height - this.margin.bottom + 60) +' )');
+
+    this.brushXScale = d3.time.scale().range([0, this.brushWidth]);
+    this.brushXAxis = d3.svg.axis()
+    .scale(this.brushXScale)
+    .innerTickSize(this.brushHeight)
+      .tickPadding(-10)
+      .orient('bottom');
     return this;
   },
 
@@ -44,7 +58,8 @@ var prototype = MultipleTimeChart.prototype = {
       }
     }
     this.data.data = data.map(function (d) { //g格式转换
-      for (var prop in that.data.contries) {
+      for (var key in that.data.contries) {
+        var prop = that.data.contries[key];
     		if (d.hasOwnProperty(prop)) {
     			d[prop] = +d[prop];
 
@@ -65,37 +80,66 @@ var prototype = MultipleTimeChart.prototype = {
   draw: function () {
     var that = this;
 
-    this.force
-   .nodes(this.nodes)
-   .links(this.data.links)
-   .start();
+    this.data.contries.forEach( function (country, i, arr) {
+      var chart = new AreaChart({
+				id: i,
+				name: country,
+				width: that.width - that.margin.left - that.margin.right,
+				height: (that.height - that.margin.top - that.margin.bottom) * (1 / arr.length),
+				maxDataPoint: that.data.maxPoint,
+				svg: that.svg,
+				margin: that.margin
+      });
+      chart.init().extractData(that.data.data).draw();
+      that.charts.push(chart);
+    });
 
-   var link = this.shape.link = this.svg.selectAll(".link")
-       .data(this.data.bilinks)
-       .enter().append("path")
-       .attr("class", "link");
+    this.brushXScale.domain(that.charts[0].xScale.domain());
 
-   var node = this.shape.node = this.svg.selectAll(".node")
-       .data(this.data.nodes)
-     .enter().append("circle")
-       .attr("class", "node")
-       .attr("r", this.radius)
-       .style("fill", function(d) { return that.color(d.group); })
-       .call(this.force.drag);
+    this.xAxisTop.scale(that.charts[0].xScale);
+    this.xAxisBottom.scale(that.charts[0].xScale);
 
-   node.append("title")
-       .text(function(d) { return d.name; });
+    this.svg.append('g')
+    .classed('x axis top', true)
+    .attr('transform', 'translate('+this.margin.left+','+this.margin.top+')')
+    .call(this.xAxisTop);
 
-   this.force.on("tick", function() {
-     that.shape.link.attr("d", function(d) {
-       return "M" + d[0].x + "," + d[0].y
-           + "S" + d[1].x + "," + d[1].y
-           + " " + d[2].x + "," + d[2].y;
-     });
-     that.shape.node.attr("transform", function(d) {
-       return "translate(" + d.x + "," + d.y + ")";
-     });
-   });
+    this.svg.append("g")
+			.attr("class", "x axis bottom")
+			.attr("transform", "translate("+this.margin.left +"," + (this.height - this.margin.bottom+ 40) + ")")
+			.call(this.xAxisBottom);
+
+    //brush 滑块
+    this.brush
+    .x(this.brushXScale)
+    .on('brush', onBrush);
+
+    this.shape.brush.append("g")
+			.attr("class", " axis top")
+			.call(this.brushXAxis)
+
+      this.shape.brush.append("g")
+  		.attr("class", "x brush")
+  		.call(this.brush)
+  		.selectAll("rect")
+			.attr("y", 0)
+			.attr("height", this.brushHeight);
+
+      this.shape.brush.append("text")
+				.attr("class","instructions")
+				.attr("transform", "translate(0," + (this.brushHeight + 20) + ")")
+				.text('Click and drag above to zoom / pan the data');
+
+        function onBrush(){
+             	/* this will return a date range to pass into the chart object */
+             	var b = that.brush.empty() ? that.brushXScale.domain() : that.brush.extent();
+             	that.charts.forEach(function (chart) {
+                 chart.update(b);
+               });
+            //   that.brushXScale.domain(b);
+               that.svg.select(".x.axis.top").call(that.xAxisTop);
+               that.svg.select(".x.axis.bottom").call(that.xAxisBottom);
+        }
 
     return this;
   },
