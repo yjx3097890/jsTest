@@ -1,0 +1,28 @@
+{
+  "name": "d3+angular",
+  "version": "0.0.0",
+  "authors": [
+    "yanjixian <yjx3097890@sina.com>"
+  ],
+  "description": "test",
+  "main": "index.html",
+  "keywords": [
+    "d3"
+  ],
+  "license": "MIT",
+  "homepage": "www.yanjixian.com",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.0",
+    "d3": "~3.5.5",
+    "normalize.css": "~3.0.3",
+    "angular-resource": "~1.4.0",
+    "angular-route": "~1.4.0"
+  }
+}

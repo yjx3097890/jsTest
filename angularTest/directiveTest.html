@@ -1,12 +1,13 @@
 <html ng-app="app">
 	<head>
-		<script type="text/javascript" src="angular/angular.js"></script>
+		<script type="text/javascript" src="angular.js"></script>
 		<script type="text/javascript">
 			var app = angular.module('app', []);
 			app.directive('myFocus', function () {
 				return {
-					link: function (scope, element, attres, controllers) {
-						element[0].innerHTML=attres.myFocus;
+					template: '<span class="sparkline">hh</span>',     //append或替换元素中的内容
+					link: function (scope, element, attrs, controllers) {
+						element[0].childNodes[0].innerHTML=attrs.myFocus;
 						element[0].focus();
 						
 					}
@@ -23,11 +24,53 @@
 					$scope.message.text = 'focused btn clicked';
 				};
 			});
+			
+			app.directive('ngCity', function() {
+			  return {
+				controller: function($scope) {}
+			  }
+			});
+			
+
+			app.directive('ngSparkline', function () {
+				return {
+				 restrict: 'A',
+			require: '^ngCity',
+			 controller: ['$scope', '$http', function($scope, $http) {
+					var url = "http://api.openweathermap.org/data/2.5/forecast/daily?mode=json&units=imperial&cnt=7&callback=JSON_CALLBACK&q=";
+				  $scope.getTemp = function(city) {
+					$http({
+					method: 'JSONP',
+					url: url + city
+				  }).success(function(data) {
+					var weather = [];
+					angular.forEach(data.list, function(value){
+					  weather.push(value);
+					});
+					$scope.weather = weather;
+				  });
+				  }
+				}],
+			scope: {
+				a: '@b',
+				d: '=c',
+				ngCity: '@'
+			},
+			template: '<div class="sparkline"><h4>{{d}} Weather for {{a}}{{ngCity}}</h4>{{weather}}</div>',
+			link: function(scope, element, attrs) {
+				scope.getTemp(attrs.ngCity);
+      // get weather details
+			}
+		};
+	});
 		</script>
 	</head>	
 	<body ng-controller='AppControler'>
 		<button ng-click='unfocused()'>not  focused</button>
 		<button my-focus='aa' ng-click='focused()'>focused! </button>
-		<div>{{message.text}}</div>
+		<div ng-bind='message.text'></div>
+		
+		<input type="text" ng-model="city" placeholder="Enter a city" />
+		<div ng-sparkline ng-city="San Francisco" b='{{message.text}}' c = 'message.text'></div>
 	</body>
 </html>
