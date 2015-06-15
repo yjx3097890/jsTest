@@ -2,9 +2,9 @@
  * Created by Yan Jixian on 2015/1/23.
  */
 
-var zhudelabFilters = angular.module('zhudelabFilters', []);
+var testFilters = angular.module('testFilters', []);
 
-zhudelabFilters.filter('addRatio', function() {
+testFilters.filter('addRatio', function() {
     return function(input, arg) {
         if (!arg || !input) {
             return input;

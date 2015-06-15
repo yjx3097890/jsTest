@@ -136,7 +136,6 @@ var prototype = MultipleTimeChart.prototype = {
              	that.charts.forEach(function (chart) {
                  chart.update(b);
                });
-            //   that.brushXScale.domain(b);
                that.svg.select(".x.axis.top").call(that.xAxisTop);
                that.svg.select(".x.axis.bottom").call(that.xAxisBottom);
         }

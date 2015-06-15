@@ -10,7 +10,7 @@
  * @element EA
  * http://brantwills.github.io/Angular-Paging/
  */
-angular.module('zhudelabDirectives').directive('paging', function () {
+angular.module('testDirectives').directive('paging', function () {
 
     // Assign null-able scope values from settings
     function setScopeValues(scope, attrs) {

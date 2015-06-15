@@ -1,0 +1,7 @@
+
+<div bar-chart bar-height="20" bar-padding="5" class='barChart' data='data' on-click="showDetailPanel(item)"></div>
+<div class="val" ng-repeat='d in data'>
+    Name: <input type="text" ng-model='d.name' value="{{d.name}}"> Score: <input type="Number" ng-model='d.score' value="{{d.score}}">
+</div>
+
+<div>{{detailItem}}</div>

@@ -1,0 +1,10 @@
+.barChart {
+  margin: 10px;
+  width: 960px;
+}
+
+.barChart .label {
+  fill: #fff;
+  font: bold 14px  sans-serif;
+  text-anchor: start;
+}

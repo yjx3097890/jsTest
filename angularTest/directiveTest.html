@@ -1,38 +1,50 @@
 <html ng-app="app">
 	<head>
+
+	<style>
+		svg .line {
+			fill: none;
+			stroke: black;
+			shape-rendering: crispEdges;
+		}
+	</style>
 		<script type="text/javascript" src="angular.js"></script>
+		<script type="text/javascript" src="d3.js"></script>
+
 		<script type="text/javascript">
-			var app = angular.module('app', []);
+			var app = angular.module('app', ['d3']);
 			app.directive('myFocus', function () {
 				return {
-					template: '<span class="sparkline">hh</span>',     //append或替换元素中的内容
+					template: '<span class="sparkline"><div ng-transclude></div>hh</span>',     //append或替换元素中的内容
 					link: function (scope, element, attrs, controllers) {
-						element[0].childNodes[0].innerHTML=attrs.myFocus;
+			//			element[0].childNodes[0].innerHTML=attrs.myFocus;
 						element[0].focus();
-						
-					}
+
+					},
+					replace: true,
+					transclude: 'element'
 				}
 			});
 			app.controller('AppControler', function ($scope) {
 				$scope.message = {text : 'nothing clicked'};
-				
+
 				$scope.unfocused = function () {
 					$scope.message.text = 'unfocused btn clicked';
 				};
-				
+
 				$scope.focused = function () {
 					$scope.message.text = 'focused btn clicked';
 				};
 			});
-			
+
 			app.directive('ngCity', function() {
 			  return {
 				controller: function($scope) {}
 			  }
 			});
-			
 
-			app.directive('ngSparkline', function () {
+
+			app.directive('ngSparkline', ['d3Service', function (d3) {
 				return {
 				 restrict: 'A',
 			require: '^ngCity',
@@ -56,21 +68,58 @@
 				d: '=c',
 				ngCity: '@'
 			},
-			template: '<div class="sparkline"><h4>{{d}} Weather for {{a}}{{ngCity}}</h4>{{weather}}</div>',
+			template: '<div class="sparkline" ><h4>{{d}} Weather for {{a}}{{ngCity}}</h4>{{weather}}</div>',
 			link: function(scope, element, attrs) {
-				scope.getTemp(attrs.ngCity);
-      // get weather details
+				scope.getTemp(scope.ngCity);   //异步不能确保weather马上得到
+				scope.$watch('weather', function(newVal) {
+					// the `$watch` function will fire even if the
+        // weather property is undefined, so we'll
+        // check for it
+				  if (newVal) {
+							var highs = [],
+							width = attrs.width || 200, height = attrs.height || 80,
+							padding =  30;;
+
+							angular.forEach(scope.weather, function (value) {
+								highs.push(value.temp.max)
+							});
+
+							var xScale = d3.time.scale().domain(d3.extent(scope.weather, function (w) {
+								return new Date(w.dt);
+							})).range([0, width]),
+							yScale = d3.scale.linear().domain(d3.extent(highs)).range([height, 0]);
+
+							var yAxis = d3.svg.axis().scale(yScale).orient('left').ticks(3);
+
+							var svg = d3.select(element[0]).append('svg').attr('width', width+padding).attr('height', height+padding)
+							.append('g')
+									.attr('transform', 'translate('+padding+', '+padding+')');;
+
+							svg.append('g').classed('y axis', true).call(yAxis);
+
+							var line = d3.svg.line()
+							.interpolate('linear')
+							.x(function (d) {
+										return xScale(d.dt);
+							})
+							.y(function (d) {
+										return yScale(d.temp.max);
+							});
+							svg.append('g').classed('line', true).append('path').datum(scope.weather).attr('d', line);
+
+				  }
+				});
 			}
 		};
-	});
+	}]);
 		</script>
-	</head>	
+	</head>
 	<body ng-controller='AppControler'>
 		<button ng-click='unfocused()'>not  focused</button>
 		<button my-focus='aa' ng-click='focused()'>focused! </button>
 		<div ng-bind='message.text'></div>
-		
+
 		<input type="text" ng-model="city" placeholder="Enter a city" />
-		<div ng-sparkline ng-city="San Francisco" b='{{message.text}}' c = 'message.text'></div>
+		<div ng-sparkline ng-city="San Francisco" b='{{message.text}}' c = 'message.text' width=400></div>
 	</body>
 </html>

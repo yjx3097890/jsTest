@@ -2,7 +2,7 @@
  * Created by Yan Jixian on 2015/2/26.
  */
 
-var zhudelabDirectives = angular.module('testDirectives', []);
+var testDirectives = angular.module('testDirectives', []);
 
 
 testDirectives.directive('navbar', function () {
@@ -35,24 +35,3 @@ testDirectives.directive('navbar', function () {
         }
     }
 });
-
-testDirectives.directive('userPermission', ['authService', function(authService) {
-    return function(scope, element, attrs) {
-            if(!angular.isString(attrs.userPermission))
-                throw "userPermission value must be a string";
-
-            var permisionArr = attrs.userPermission.trim().split(' ');
-
-            element.hide();
-            function toggleVisibilityBasedOnPermission() {
-                var hasPermission = authService.hasPermission(permisionArr);
-
-                if(hasPermission)
-                    element.show();
-                else
-                    element.hide();
-            }
-            toggleVisibilityBasedOnPermission();
-            scope.$on('userChanged', toggleVisibilityBasedOnPermission);
-        }
-}]);
