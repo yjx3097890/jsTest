@@ -15,7 +15,7 @@
 </div>
 
 <script type="text/javascript">
-    var start = new Date(2013, 0, 1), // <-A 
+    var start = new Date(2013, 0, 1), // <-A
         end = new Date(2013, 11, 31),
         range = [0, 1200],
         time = d3.time.scale().domain([start, end]) // <-B
@@ -34,13 +34,13 @@
                     .data(data)
                 .enter()
                     .append("div").classed("fixed-cell", true);
+        //
+        // d3.select(selector).selectAll("div.fixed-cell")
+        //             .data(data)
+        //         .exit().remove();
 
         d3.select(selector).selectAll("div.fixed-cell")
-                    .data(data)
-                .exit().remove();
 
-        d3.select(selector).selectAll("div.fixed-cell")
-                    .data(data)
                 .style("margin-left", function(d){ // <-F
                     return scale(d) + "px";
                 })

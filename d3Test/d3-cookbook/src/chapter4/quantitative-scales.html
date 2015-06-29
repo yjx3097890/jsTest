@@ -28,17 +28,17 @@
 
     var linear = d3.scale.linear() // <-A
         .domain([1, 10]) // <-B
-        .range([1, 10]); // <-C        
+        .range([1, 10]); // <-C
     var linearCapped = d3.scale.linear()
-        .domain([1, 10])        
-        .range([1, 20]); // <-D
-        
+        .domain([1, 10])
+        .range([1, 20]).nice(0.1); // <-D
+
     var pow = d3.scale.pow().exponent(2); // <-E
     var powCapped = d3.scale.pow() // <-F
         .exponent(2)
         .domain([1, 10])
         .rangeRound([1, 10]); // <-G
-        
+
     var log = d3.scale.log(); // <-H
     var logCapped = d3.scale.log() // <-I
         .domain([1, 10])

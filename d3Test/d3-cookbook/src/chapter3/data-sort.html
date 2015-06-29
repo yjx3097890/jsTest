@@ -25,19 +25,18 @@
     ];
 
     function render(data, comparator) {
+
+
         d3.select("body").selectAll("div.h-bar") // <-B
                 .data(data)
             .enter().append("div")
                 .attr("class", "h-bar")
                 .append("span");
 
-        d3.select("body").selectAll("div.h-bar") // <-C
-                .data(data)
-            .exit().remove();
+
 
         d3.select("body").selectAll("div.h-bar") // <-D
-                .data(data)
-            .attr("class", "h-bar")
+             
             .style("width", function (d) {
                 return (d.expense * 5) + "px";
             })
@@ -46,9 +45,10 @@
                     return d.category;
                 });
 
+//enter and  update
         if(comparator)
             d3.select("body")
-                .selectAll("div.h-bar") 
+                .selectAll("div.h-bar")
                 .sort(comparator); // <-E
     }
 

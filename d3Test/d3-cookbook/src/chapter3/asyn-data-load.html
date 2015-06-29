@@ -33,27 +33,26 @@
             .attr("class", "h-bar")
             .append("span");
 
-        d3.select("#chart").selectAll("div.h-bar") // <-C
-                .data(data)
-            .exit().remove();
+        // d3.select("#chart").selectAll("div.h-bar") // <-C
+        //         .data(data)
+        //     .exit().remove();
 
         d3.select("#chart").selectAll("div.h-bar") // <-D
-                .data(data)
-            .attr("class", "h-bar")
+
             .style("width", function (d) {
                 return (d.expense * 5) + "px";
             })
             .select("span")
-                .text(function (d) {
-                    return d.category;
-                });
+            .text(function (d) {
+                return d.category;
+            });
     }
 
     render(data);
 
     function load(){ // <-E
         d3.json("data.json", function(error, json){ // <-F
-            data = data.concat(json);  
+            data = data.concat(json);
             render(data);
         });
     }

@@ -34,22 +34,21 @@
     var max = 10, data = [];
 
     for (var i = 0; i < max; ++i) data.push(i); // <-A
-    
+
     var alphabet = d3.scale.ordinal() // <-B
         .domain(data)
         .range(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
-        
+
     function render(data, scale, selector) { // <-C
         d3.select(selector).selectAll("div.cell")
                     .data(data)
                 .enter().append("div").classed("cell", true);
 
-        d3.select(selector).selectAll("div.cell")
-                    .data(data)
-                .exit().remove();
+        // d3.select(selector).selectAll("div.cell")
+        //             .data(data)
+        //         .exit().remove();
 
         d3.select(selector).selectAll("div.cell")
-                    .data(data)
                 .style("display", "inline-block")
                 .style("background-color", function(d){  // <-D
                     return scale(d).indexOf("#")>=0?scale(d):"white";

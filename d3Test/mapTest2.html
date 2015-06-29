@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <style media="screen">
+.map { fill: #151849;
+	stroke: yellow;
+ }
+  
+  .label {
+    fill: #FFF;
+    fill-opacity: .5;
+    font-size: 10px;
+    font-weight: 300;
+    text-anchor: start;
+  }
+    </style>
+  </head>
+  <body>
+
+<script src="d3.js" charset="utf-8"></script>
+<script src="topojson.v1.min.js" charset="utf-8"></script>
+<script type="text/javascript">
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  var svg= d3.select('body')
+  .append('svg')
+  .attr('width', width)
+  .attr('height', height);
+
+  var projection= d3.geo.mercator().center([110,37]).scale(height * 1.15).translate([width/2,height/2]);
+  
+    var path = d3.geo.path()
+    .projection(projection);
+
+    d3.json('china2.json', function (e, china) {
+		  if (e) return console.log(e);
+
+		  svg.selectAll('.sub')
+		  .data(china.features)
+		  .enter()
+		  .append('path')
+		  .classed('map', true)
+		  .attr('d', path);
+
+
+			var labels = svg.selectAll(".label")
+		  .data(china.features)
+			.enter().append('g')
+			.attr("class", function(d) { return "label "; })
+		  .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; });//计算图心
+
+			labels.append("text")
+		  .attr("dy", ".35em")
+		  .text(function(d) { return d.properties.name; });
+
+
+
+		labels.append('circle')
+		.attr({cx: -5,
+		cy:0,
+		r: 1});
+
+    });
+</script>
+  </body>
+</html>

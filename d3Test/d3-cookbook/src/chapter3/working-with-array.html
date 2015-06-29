@@ -91,9 +91,9 @@
             .key(function (d) { // <- B
                 return d.tip;
             })
-            .entries(records); // <- C
+            .map(records, d3.map); // <- C
 
-    d3.select("#nest").html(printNest(nest, ""));
+    d3.select("#nest").html(JSON.stringify(nest));
 
     function printNest(nest, out, i) {
         if(i === undefined) i = 0;

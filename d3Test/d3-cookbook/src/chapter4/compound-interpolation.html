@@ -16,9 +16,9 @@
 <script type="text/javascript">
     var max = 21, data = [];
 
-    var compoundScale = d3.scale.pow()
-            .exponent(2)
-            .domain([0, max])
+    var compoundScale = d3.scale.log().base(2)
+          //  .exponent(3)
+            .domain([1, max])
             .range([
                 {color:"#add8e6", height:"15px"}, // <-A
                 {color:"#4169e1", height:"150px"} // <-B
@@ -32,16 +32,14 @@
                 .enter().append("div").classed("v-bar", true)
                 .append("span");
 
-        d3.select(selector).selectAll("div.v-bar")
-                .data(data)
-                .exit().remove();
+
 
         d3.select(selector).selectAll("div.v-bar")
-                .data(data)
+
                 .classed("v-bar", true)
                 .style("height", function(d){ // <-D
                     return scale(d).height;
-                }) 
+                })
                 .style("background-color", function(d){ // <-E
                     return scale(d).color;
                 })

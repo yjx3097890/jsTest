@@ -19,7 +19,7 @@
     var sizeScale = d3.scale.linear() // <-A
         .domain([0, max])
         .range([  // <-B
-            "italic bold 12px/30px Georgia, serif", 
+            "italic bold 12px/30px Georgia, serif",
             "italic bold 120px/180px Georgia, serif"
         ]);
 
@@ -31,15 +31,15 @@
             .enter().append("div").classed("cell", true)
                 .append("span");
 
-        d3.select(selector).selectAll("div.cell")
-                .data(data)
-            .exit().remove();
+        // d3.select(selector).selectAll("div.cell")
+        //         .data(data)
+        //     .exit().remove();
 
         d3.select(selector).selectAll("div.cell")
-                .data(data)
+               
             .style("display", "inline-block")
             .select("span")
-                .style("font", function(d,i){ 
+                .style("font", function(d,i){
                     return scale(d); // <-D
                 })
                 .text(function(d,i){return i;}); // <-E
