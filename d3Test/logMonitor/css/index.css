@@ -1,0 +1,278 @@
+html, body, .container, .ng-scope {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  text-align: center;
+  padding: 0;
+}
+
+* {
+  box-sizing: content-box;
+}
+.container {
+  background-color: #333940;
+  padding-top: 42px;
+}
+
+.header.navbar {
+  min-height: auto;
+  max-height: 42px;
+}
+
+.header .navbar-inner .brand img {
+  width: 25%;
+  vertical-align: -13px;
+}
+
+.header .navbar-inner .brand .navbar-name {
+  display: inline-block;
+  color: #fff;
+   margin: 0;
+  line-height: 42px;
+}
+
+.header .navbar-inner .user {
+  padding-right: 20px;
+  line-height: 42px;
+  color: #fff;
+}
+
+.header .navbar-inner .user .username {
+  padding: 0 20px 0 5px;
+}
+
+.header .navbar-inner .user .icon-wrench {
+  text-decoration: none;
+  font-size: 1.5em;
+  vertical-align: sub;
+    color: gray;
+}
+
+/***
+Login page
+***/
+.login {
+  padding: 40px;
+}
+
+.login  .content .input-icon .idCode{
+  width: 45%;
+  float: left;
+}
+
+.login  .content .input-icon .genimage {
+  height: 34px;
+  right: -20px;
+  position: relative;
+}
+
+.login .content .form-actions .left {
+  margin-right: 40px;
+}
+
+.login .content .form-actions .right {
+  margin-left: 40px;
+}
+
+.login .content a {
+  text-decoration: none;
+}
+
+/* dashboard page*/
+.dashboard {
+  color: #fff;
+  text-align: left;
+}
+
+.dashboard .title {
+  font-size: 17px;
+font-weight: bolder;
+}
+
+.dashboard .map {
+  fill: #2A4A5B;
+	stroke: #555F6B;
+ }
+
+ .dashboard .label {
+    fill: #FFF;
+    fill-opacity: 1;
+    font-size: 10px;
+    font-weight: 300;
+    text-anchor: start;
+  }
+
+.dashboard .module {
+  position: absolute;
+  border: solid 1px black;
+  box-shadow: 0 0 2px;
+  padding: 7px 10px;
+}
+
+.dashboard .systemInfo {
+  top: 80px;
+  left: 40px;
+  width: 400px;
+  height: 240px;
+}
+
+/*.dashboard .systemInfo .logInfo {*/
+  /*padding: 10px;*/
+/*}*/
+
+.dashboard .systemInfo .logInfo h2{
+  font-size: 12px;
+  padding: 10px 0 0 0;
+  margin: 0;
+  text-align: center;
+}
+
+.dashboard .systemInfo .logInfo .storage {
+  width: 216px;
+height: 140px;
+display: inline-block;
+
+}
+
+.dashboard .systemInfo .logInfo .storage .svg-label text {
+  stroke: #fff;
+  text-anchor: end;
+  fill: none;
+  stroke-width: -1px;
+    stroke-opacity: 0.5;
+}
+
+.dashboard .systemInfo .logInfo ul {
+  padding-left: 10px;
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+.dashboard .systemInfo .logInfo ul li {
+  margin-top: 5px;
+}
+
+.dashboard .systemInfo .detail {
+  display: block;
+  list-style-type:none;
+  text-align: left;
+}
+
+
+
+.dashboard .uploadRank {
+  top: 380px;
+  left: 40px;
+  width: 400px;
+  height: 225px;
+}
+
+.dashboard .uploadRank svg {
+  margin-top: 10px;
+}
+.dashboard .logCount {
+  top: 640px;
+  left: 40px;
+  width: 400px;
+  height: 150px;
+}
+
+.dashboard .logCount .line {
+  fill: none;
+  stroke: #1F77B4;
+  stroke-width: 1.5px;
+}
+
+.dashboard .logCount .axis line{
+fill: none;
+stroke: black;
+shape-rendering: crispEdges;
+}
+
+.dashboard .logCount .circle {
+  fill: #FF7F0E;
+  visibility: hidden;
+}
+
+.dashboard .logCount .circle circle {
+  visibility: visible;
+}
+
+.dashboard .logCount .circle .circle-label {
+  text-anchor: start;
+}
+
+.dashboard .logCount .circle:hover {
+  visibility: visible;
+}
+
+.dashboard .sysNotice {
+  top: 80px;
+  right: 40px;
+  width: 400px;
+  height: 200px;
+}
+
+
+
+.dashboard .sysNotice .note-list, .dashboard .sysAlarm .note-list{
+  max-height: 350px;
+  overflow-y: auto;
+  box-shadow: 0 0 2px;
+  border: solid 1px #fff;
+  margin-top: 10px;
+}
+
+.dashboard .sysNotice .note-list .list-group-item, .dashboard .sysAlarm .note-list .list-group-item{
+  padding: 5px 10px;
+  opacity: 0.5;
+}
+
+
+.dashboard .sysAlarm {
+  top: 320px;
+  right: 40px;
+  width: 400px;
+  height: 400px;
+}
+
+.dashboard .sysAlarm .calendar {
+  height: 245px;
+width: 400px;
+border: solid 1px;
+}
+
+.dashboard .menu{
+  bottom : 40px;
+  right: 40px;
+  width: 35px;
+  height: 35px;
+  background: #c9c9c9 ;
+  padding: 1px 1px 0 1px;
+  text-align: center;
+}
+
+.dashboard .menu:hover{
+    background-color: #000;
+    color: #FFF;
+}
+
+.dashboard .menu span{
+  font-size: 35px;
+}
+
+.dashboard .menu ul{
+  display: block;
+  width: 100px;
+  height: 105px;
+  background-color: #000;
+  bottom: 28px;
+  right: 0px;
+  position: absolute;
+  padding-left: 0;
+}
+
+.dashboard .menu ul li{
+  display: block;
+  height: 35px;
+  line-height: 35px;
+}
