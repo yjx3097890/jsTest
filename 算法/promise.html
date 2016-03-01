@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>what you see is what you get</title>
+<script src="./promise.js" charset="utf-8"></script>
+</head>
+<body>
+
+
+<script type="text/javascript">
+var promise = new Promise(function(resolve, reject) {
+  setTimeout(function(){
+    resolve('val')
+  },100);
+});
+var promise2 = new Promise(function(resolve, reject) {
+	setTimeout(function(){
+		resolve('val2')
+	},100);
+});
+
+promise.then(function a(val) {
+	return promise2;
+;
+}).then(function b(val) {
+	console.log(val);
+},function (err) {
+	console.log(err);
+})
+</script>
+</body>
+</html>
