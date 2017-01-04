@@ -1,0 +1,42 @@
+{
+  "name": "avatest",
+  "version": "1.0.0",
+  "description": "test",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava",
+    "test:watch": "ava --watch"
+  },
+  "keywords": [
+    "ava"
+  ],
+  "author": "yanjixian",
+  "license": "ISC",
+  "devDependencies": {
+    "ava": "^0.17.0",
+    "tap-dot": "^1.0.5",
+    "tap-nyan": "^1.1.0"
+  },
+  "dependencies": {
+    "ignore-by-default": "^1.0.1",
+    "rxjs": "^5.0.1",
+    "safe-eval": "^0.3.0"
+  },
+  "ava": {
+    "files": [
+      "*.js",
+      "!**/not-this-file.js"
+    ],
+    "source": [
+      "**/*.{js,jsx}",
+      "!dist/**/*"
+    ],
+    "match": [
+      "*oo",
+      "!bar"
+    ],
+    "failFast": false,
+    "tap": false,
+    "verbose": true
+  }
+}

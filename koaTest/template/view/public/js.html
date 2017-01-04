@@ -1,0 +1,13 @@
+
+<%for(var i in js){%>
+	<% if(js[i].indexOf('http://')!=-1){%>
+		<script type="text/javascript" src="<%=js[i]%>"></script>
+	<%}else{%>
+		<script type="text/javascript" src="<%=jsServerAddr%><%=js[i]%>"></script>
+	<%}%>
+<%}%>
+<script type="text/javascript">
+	seajs.config({
+		base:'<%=jsServerAddr%>'
+	})
+</script>
