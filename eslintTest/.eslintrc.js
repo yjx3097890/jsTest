@@ -3,5 +3,8 @@ module.exports = {
     "installedESLint": true,
     "plugins": [
         "import"
-    ]
+    ],
+    "rules": {
+        "indent": [1, 4]
+    }
 };
