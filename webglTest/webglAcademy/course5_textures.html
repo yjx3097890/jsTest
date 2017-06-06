@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+</head>
+<body style="margin: 10px">
+<canvas width="1024px" height="600px" id="canvas"></canvas>
+
+<script src="./matrixLibs.js"></script>
+<script type="text/javascript">
+	const canvas = document.getElementById("canvas");
+	const gl = canvas.getContext("webgl",  {antialias: true});	
+
+  let AMORTIZATION=0.9;  
+	let drag = false;
+	let oldPosition=[0, 0];
+
+	const mouseDown = function (event) {
+		event.preventDefault();
+		drag = true;
+		oldPosition[0] = event.clientX;
+		oldPosition[1] = event.clientY;
+	};
+	const mouseUp = function () {
+		drag = false;
+	}
+	let dX=0, dY=0;
+	const mouseMove = function (event) {
+		if (!drag) return false;
+		event.preventDefault();
+
+		dX=(event.clientX-oldPosition[0])/canvas.width * 2*Math.PI ;
+		dY=(event.clientY-oldPosition[1])/canvas.height * 2*Math.PI ;
+	 theta+=dX;
+	 phi+=dY;
+		oldPosition[0]=event.clientX, oldPosition[1]=event.clientY;
+	}
+	canvas.addEventListener("mousedown", mouseDown, false);
+	canvas.addEventListener("mouseup", mouseUp, false);
+	canvas.addEventListener("mouseout", mouseUp, false);
+	canvas.addEventListener("mousemove", mouseMove, false);
+
+	const vertexShader = `
+		attribute vec3 position; //the position of the point
+		attribute vec2 uv;
+
+		uniform mat4 Pmatrix; 
+		uniform mat4 Mmatrix; 
+		uniform mat4 Vmatrix; 
+
+
+		varying vec2 vuv; 
+
+		void main(void) { //pre-built function
+			gl_Position = Pmatrix * Vmatrix * Mmatrix * vec4(position, 1.0);  //矩阵运算在GPU中比在CPU中快得多。
+			vuv = uv;
+		}
+	`;
+	const fragmentShader = `
+		precision mediump float; 
+
+		uniform sampler2D sampler;
+		varying vec2 vuv;
+
+		void main(void) {
+			gl_FragColor = texture2D(sampler, vuv); 
+		}	
+	`;
+
+	const compileShader = function (source, type) {
+		const shader = gl.createShader(type);
+		gl.shaderSource(shader, source);
+		gl.compileShader(shader);
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			alert("ERROR IN "+ type + " SHADER : " + gl.getShaderInfoLog(shader));
+			return false;
+		}
+		return shader;
+	}
+
+	let vShader = compileShader(vertexShader, gl.VERTEX_SHADER);
+	let fShader = compileShader(fragmentShader, gl.FRAGMENT_SHADER);
+
+	const shaderProgram = gl.createProgram();  
+	gl.attachShader(shaderProgram, vShader);
+	gl.attachShader(shaderProgram, fShader);
+	
+	gl.linkProgram(shaderProgram); 
+
+	const Pmatrix = gl.getUniformLocation(shaderProgram, 'Pmatrix'); 
+	const Mmatrix = gl.getUniformLocation(shaderProgram, 'Mmatrix');
+	const Vmatrix = gl.getUniformLocation(shaderProgram, 'Vmatrix');
+	const sampler = gl.getUniformLocation(shaderProgram, 'sampler');
+	//sampler为着色器提供纹理对象.
+	//一个shader可以同时使用多个纹理，通过多个sampler.
+	//sample的最大个数根据显卡而定，通常为16，但是低配置的可能只有4.
+	
+	let uv = gl.getAttribLocation(shaderProgram, 'uv');
+	let position = gl.getAttribLocation(shaderProgram, 'position');
+	gl.enableVertexAttribArray(uv);
+	gl.enableVertexAttribArray(position);  
+
+	gl.useProgram(shaderProgram);  
+
+ const getTexture=function(image_URL){
+    const image=new Image();
+    image.src=image_URL;
+    image.webglTexture=false;
+    image.onload=function(e) {
+      const texture=gl.createTexture();              // 新建纹理对象
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);  //指定像素存储（ pixel storage）模式。会影响gl.readPixels()和texImage2D() ，texSubImage2D() 。
+	  // gl.UNPACK_FLIP_Y_WEBGL:重新生成一张内存图片，将纹理像素上下颠倒的复制到新图片。true/false
+	  // gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL : 对图片纹理的每个像素的R、G、B通道，乘以A的值后，并替换原先的值。true/false
+	  // gl.UNPACK_ALIGNMENT: 纹理像素的对齐最小公因子。值：1, 2, 4, 8
+	  	// 在OpenGLES1.0的时代，纹理大小只能是2的整数倍，这样的图片在OpenGL中是无法识别的。就要做转换：
+		// 	1. GL_RGBA：转换后，每个像素成为4个字节
+		// 	2. GL_RGB：不转换，图片的每行，我们增加一个byte。在增加一个空白行，成为10x10的图片
+		// 	3. ALIGNMENT：在OpenGL ES2.0以后可以设置UNPACK_ALIGNMENT，它表示像素对齐最小公因子，我们设置为1，告诉GPU只要是1的整数倍即可。（这点会影响GPU的性能，因为GPU也像CPU一样，喜欢字节对齐的数据）
+
+      gl.bindTexture(gl.TEXTURE_2D, texture);        //绑定纹理到gl
+		// gl.TEXTURE_2D: 2维纹理.
+		// gl.TEXTURE_CUBE_MAP: 立方体贴图纹理.
+
+	  //常用的纹理格式有：GL_RGB, GL_RGBA, GL_ALPHA, GL_LUMINANCE, GL_LUMINANCE_ALPHA。
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);  //发送2维image数据到texture
+// void gl.texImage2D(target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels);
+// void gl.texImage2D(target, level, internalformat, format, type, ImageData? pixels);
+// void gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
+// void gl.texImage2D(target, level, internalformat, format, type, HTMLCanvasElement? pixels);
+// void gl.texImage2D(target, level, internalformat, format, type, HTMLVideoElement? pixels);
+// void gl.texImage2D(target, level, internalformat, format, type, ImageBitmap? pixels);
+	//target:指定激活纹理的绑定点。可选值：
+			// gl.TEXTURE_2D: 2维纹理.
+			// gl.TEXTURE_CUBE_MAP_POSITIVE_X: X轴正面的立方体贴图.
+			// gl.TEXTURE_CUBE_MAP_NEGATIVE_X: Negative X face for a cube-mapped texture.
+			// gl.TEXTURE_CUBE_MAP_POSITIVE_Y: Positive Y face for a cube-mapped texture.
+			// gl.TEXTURE_CUBE_MAP_NEGATIVE_Y: Negative Y face for a cube-mapped texture.
+			// gl.TEXTURE_CUBE_MAP_POSITIVE_Z: Positive Z face for a cube-mapped texture.
+			// gl.TEXTURE_CUBE_MAP_NEGATIVE_Z: Negative Z face for a cube-mapped texture.
+	 //level: 指定精细等级。0：原始等级，n: n级下降等级
+	 //internalformat: 指定纹理中颜色通道。可选值：
+		// gl.ALPHA: 丢弃  red, green and blue ，只读取 alpha.
+		// gl.RGB: 丢弃alpha通道，只读取 red, green and blue 通道.
+		// gl.RGBA: 读取Red, green, blue and alpha 通道.
+		// gl.LUMINANCE: 按照亮度值存储纹理单元， alpha is 1.0.
+		// gl.LUMINANCE_ALPHA: 按照亮度和alpha值存储纹理单元.
+	 //width: 指定纹理宽度。
+	 //height: 指定纹理高度。
+	 //border: 指定纹理的边宽，必须是0.
+	 //format：指定纹理数据格式，一般与internalformat相同
+	 //type：指定纹理的数据类型，主要有：
+	 	// gl.UNSIGNED_BYTE:   gl.RGBA 每通道 8 bits 。
+		// gl.UNSIGNED_SHORT_5_6_5: 5 red bits, 6 green bits, 5 blue bits.
+		// gl.UNSIGNED_SHORT_4_4_4_4: 4 red bits, 4 green bits, 4 blue bits, 4 alpha bits.
+		// gl.UNSIGNED_SHORT_5_5_5_1: 5 red bits, 5 green bits, 5 blue bits, 1 alpha bit.
+	 //pixels: 纹理数据。有Uint8Array， Uint16Array ，Uint32Array，Float32Array，ImageData, HTMLImageElement, HTMLCanvasElement, HTMLVideoElement, ImageBitmap.
+
+	 //设置纹理映射参数
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); //当所要显示的纹理比加载进来的纹理大时，采用GL_LINEAR的方法来放大处理
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); //当所要显示的纹理比加载进来的纹理小时，采用GL_LINEAR的方法来缩小处理
+	  	// void gl.texParameterf(GLenum target, GLenum pname, GLfloat param);
+		// void gl.texParameteri(GLenum target, GLenum pname, GLint param); 
+			//target: 设置目标。可选值：
+				// gl.TEXTURE_2D: 2维纹理.
+				// gl.TEXTURE_CUBE_MAP: 立方体贴图纹理.
+			//pname: param
+				//gl.TEXTURE_MAG_FILTER	: gl.LINEAR (default value), gl.NEAREST.  放大过滤.	GL_NEAREST采用坐标最靠近象素中心的纹素，这有可能使图像走样； GL_LINEAR则采用最靠近象素中心的四个象素的加权平均值。GL_NEAREST所需计算比GL_LINEAR要少，因而执行得更快，但 GL_LINEAR提供了比较光滑的效果。
+				//gl.TEXTURE_MIN_FILTER :    缩小过滤
+										//gl.LINEAR,     在mip基层上使用线性过滤
+										//gl.NEAREST,    在mip基层上使用最邻近过滤
+										//gl.NEAREST_MIPMAP_NEAREST,   选择最邻近的mip层，并使用最邻近过滤
+										//gl.LINEAR_MIPMAP_NEAREST,    选择最邻近的mip层，使用线性过滤
+										//gl.NEAREST_MIPMAP_LINEAR (default value),  在mip层之间使用线性插值，之后选择最邻近过滤
+										//gl.LINEAR_MIPMAP_LINEAR. 在mip层之间使用线性插值,之后使用线性过滤，又称三线性mipmap
+				//gl.TEXTURE_WRAP_S : gl.REPEAT (default value), gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT. 纹理坐标可以超出(0, 1)范围，并且在纹理映射过程中可以重复映射或约简映射。在重复映射的情况下，纹理可以在s，t方向上重复.
+				//gl.TEXTURE_WRAP_T : gl.REPEAT (default value), gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT.
+	 gl.generateMipmap(gl.TEXTURE_2D);  //创建一组连续变小的纹理，在场景缩放时选择最合适的使用。消除闪烁，并减少计算
+      gl.bindTexture(gl.TEXTURE_2D, null); //释放上下文
+
+      image.webglTexture=texture;
+    };
+
+    return image;
+  };
+  //纹理对象
+	gl.uniform1i(sampler, 0);
+   var cubeTexture=getTexture("./texture.png");
+	
+
+//uv坐标表示纹理图片的点坐标，2维的。U和V在0，1之间。 (U=0, V=0) 表示图像的左下角， (U=1, V=1)表示右上角。
+	//顶点坐标数组, 这里的顺序不重要
+	const triangleVertex =
+	[
+		-1,-1,-1,     0,0,        //uv坐标
+		1,-1,-1,     1,0,
+		1, 1,-1,     1,1,
+		-1, 1,-1,     0,1,
+
+		-1,-1, 1,     0,0,
+		1,-1, 1,     1,0,
+		1, 1, 1,     1,1,
+		-1, 1, 1,     0,1,
+
+		-1,-1,-1,     0,0,
+		-1, 1,-1,     1,0,
+		-1, 1, 1,     1,1,
+		-1,-1, 1,     0,1,
+
+		1,-1,-1,     0,0,
+		1, 1,-1,     1,0,
+		1, 1, 1,     1,1,
+		1,-1, 1,     0,1,
+
+		-1,-1,-1,     0,0,
+		-1,-1, 1,     1,0,
+		1,-1, 1,     1,1,
+		1,-1,-1,     0,1,
+
+		-1, 1,-1,     0,0,
+		-1, 1, 1,     1,0,
+		1, 1, 1,     1,1,
+		1, 1,-1,     0,1
+  ];
+
+	const pointBuffer = gl.createBuffer();  
+	gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer); 
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertex), gl.STATIC_DRAW); 
+
+	//顶点渲染顺序，这里指定顺序
+	const triangleFaces = 
+	[
+		0,1,2,
+		0,2,3,
+
+		4,5,6,
+		4,6,7,
+
+		8,9,10,
+		8,10,11,
+
+		12,13,14,
+		12,14,15,
+
+		16,17,18,
+		16,18,19,
+
+		20,21,22,
+		20,22,23
+  ];
+	const faceBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer); 
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(triangleFaces), gl.STATIC_DRAW);
+
+ 	const projMatrix = LIBS.get_projection(40, canvas.width/canvas.height, 1, 100);
+ 	const moveMatrix = LIBS.get_I4();  
+	 const viewMatrix = LIBS.get_I4();
+	
+		
+
+		let theta = 0;
+		let phi = 0; 
+
+
+	//渲染
+	gl.clearColor(0, 0, 0, 0);
+
+	gl.enable(gl.DEPTH_TEST);  
+	gl.depthFunc(gl.LEQUAL);  
+	gl.clearDepth(1.0);  
+
+	let oldTime = 0;
+
+	const animate = function (time) {
+		//运动
+		let dAngle=(time-oldTime);
+		  if (!drag) {
+			dX*=AMORTIZATION;
+			dY*=AMORTIZATION;
+			theta+=dX;
+			phi+=dY;
+		}
+		LIBS.set_I4(moveMatrix);
+		LIBS.scaleX(moveMatrix, 0.5);
+		LIBS.scaleY(moveMatrix, 0.5);
+		LIBS.scaleZ(moveMatrix, 0.5);
+		// LIBS.rotateY(moveMatrix, theta);
+		// LIBS.rotateX(moveMatrix, phi); 
+		LIBS.set_I4(viewMatrix);
+		LIBS.translateZ(viewMatrix, -5); 
+ 
+		 LIBS.rotateY(viewMatrix, -theta);
+		 LIBS.rotateX(viewMatrix, -phi); 
+
+		oldTime=time;
+		
+		gl.viewport(0, 0, canvas.width, canvas.height); 
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
+		gl.uniformMatrix4fv(Pmatrix, false, projMatrix); 
+		gl.uniformMatrix4fv(Mmatrix, false, moveMatrix);
+		gl.uniformMatrix4fv(Vmatrix, false, viewMatrix);
+
+		if (cubeTexture.webglTexture) {
+ 			gl.activeTexture(gl.TEXTURE0);  //选择活动纹理单元,确定了后续的纹理状态改变影响哪个纹理
+			 //void activeTexture(	GLenum texture);
+				// texture: 指定哪一个纹理单元被置为活动状态。texture必须是GL_TEXTUREi之一，其中0 <= i < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS，初始值为GL_TEXTURE0
+
+    	    gl.bindTexture(gl.TEXTURE_2D, cubeTexture.webglTexture);
+		}
+
+		//draw
+		gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+		gl.vertexAttribPointer(position, 3, gl.FLOAT, gl.FALSE, 4*(3+2), 0); 
+		gl.vertexAttribPointer(uv, 2, gl.FLOAT, gl.FALSE, 4*(3+2), 3*4 );  
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer);
+		gl.drawElements(gl.TRIANGLES, 3*2*6, gl.UNSIGNED_SHORT, 0);  
+
+		gl.flush();  
+
+
+		requestAnimationFrame(animate);  
+	}
+
+	animate(0);
+</script>
+</body>
+</html>

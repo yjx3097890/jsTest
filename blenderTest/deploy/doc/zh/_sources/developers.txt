@@ -1,0 +1,1112 @@
+
+对应用程序开发人员
+******************
+
+
+目录
+^^^^
+
+* 对应用程序开发人员
+
+  * 应用程序编程
+
+    * “你好，世界！”应用
+
+    * 应用中加载场景
+
+    * 模块系统
+
+    * 快速创建应用程序
+
+  * 背景透明
+
+  * 资源转换
+
+    * Commands
+
+    * Arguments
+
+    * 依赖
+
+    * 数据格式
+
+  * 示例代码
+
+  * 加载应用程序资产
+
+  * 事件驱动模型
+
+    * 传感器
+
+    * 示例
+
+  * SDK文件结构
+
+  * 加载本地资源
+
+  * 品质配置
+
+  * Non-Standard Canvas Position and Orientation
+
+  * Mobile Web Apps
+
+
+应用程序编程
+============
+
+
+“你好，世界！”应用
+------------------
+
+最简单的应用程序Blend4Web可能是这样的：
+
+   <!DOCTYPE html>
+   <html>
+   <head>
+   <script src="b4w.min.js"></script>
+   <script>
+   function hello() {
+       var m_version = b4w.require("version");
+       document.body.innerHTML = "Hello, Blend4Web " + m_version.version() + "!";
+   }
+   </script>
+   </head>
+
+   <body onload="hello()"></body>
+
+   </html>
+
+这个应用在浏览器窗口打印了一行信息和引擎的版本。让我们更仔细的查看这个
+示例。引擎库嵌入在 "<script src="...">" 元素中。应用等待页面加载然后在
+浏览器窗口打印当前版本。在这个示例中，"version" 是唯一用到的模块带有一
+个同样名字的函数 - "version()". 需要更详细的了解使用引擎模块和函数的信
+息可以在  API 文档 中找到。
+
+编译引擎文件 "b4w.min.js" 可以从SDK的 "deploy/apps/common" 目录进行复
+制，并和HTML文件放置在同一目录中。
+
+
+应用中加载场景
+--------------
+
+要加载你需要的3D场景：
+
+1. 放置一个 "<canvas>" 元素到页面进行渲染。
+
+2. 调用  "m_main.init()" 函数创建的元素 id 加载页面后初始化 WebGL
+   上下 文。
+
+3. 调用 "m_data.load()" 函数加载3D场景。
+
+   <!DOCTYPE html>
+   <html>
+   <head>
+   <script src="b4w.min.js"></script>
+   <script>
+   function hello() {
+       var m_main = b4w.require("main");
+       var m_data = b4w.require("data");
+
+       var canvas_elem = document.getElementById("canvas_id");
+       m_main.init(canvas_elem);
+       m_data.load("some_scene.json");
+   }
+   </script>
+   </head>
+
+   <body onload="hello()"><canvas id="canvas_id"></canvas></body>
+
+   </html>
+
+注解: 注意，一个实际应用应包括错误检查，在引擎初始化之前并且还要有与
+  用户交 互的基本系统设定。
+
+
+模块系统
+--------
+
+虽然引擎赋予应用程序程序员 API 中的几十个模块的规模，它占用单 'b4w' 命
+名空间。调用模块的方法 "b4w.require()" 功能首先导入。
+
+如果他们的名称不与现有的模块冲突能够登记外部模块。模块可以用
+"b4w.register()" 调用登记。检查是否有一些名称的模块已调用用
+"b4w.module_check()" 调用。
+
+示例：
+
+   // check if module exists
+   if (b4w.module_check("my_module"))
+       throw "Failed to register module: my_module";
+
+   // register my_module
+   b4w.register("my_module", function(exports, require) {
+
+       // import module "version"
+       var m_version = require("version");
+
+       // export print_build_date() from module "my_module"
+       exports.print_build_date = function() {
+           // exec function date() from module "version"
+           console.log("Engine build date: " + m_version.date());
+       }
+   });
+
+   // import module "my_module"
+   var m_my_module = b4w.require("my_module");
+
+   // exec function print_build_date() from module "my_module"
+   m_my_module.print_build_date();
+
+
+快速创建应用程序
+----------------
+
+从头开始创建一个应用程序可以是一个乏味的任务，特别对于初学者。为了解决
+这个问题有一个特殊名为 "app" 的引擎插件：
+
+   <!DOCTYPE html>
+   <html>
+   <head>
+   <script src="b4w.min.js"></script>
+   <script>
+
+   var m_app = b4w.require("app");
+   var m_data = b4w.require("data");
+
+   m_app.init({
+       canvas_container_id: "container_id",
+       callback: load_cb
+   })
+
+   function load_cb() {
+       m_data.load("some_scene.json", loaded_cb);
+   }
+
+   function loaded_cb() {
+       m_app.enable_camera_controls();
+   }
+
+   </script>
+   </head>
+
+   <body>
+       <div id="container_id" style="width: 350px; height: 200px;"></div>
+   </body>
+
+   </html>
+
+在这种情况下，"app" 模块将在容器内的元素用指定 "container_id" ID建立一
+个 "<canvas>" 。再经过页面加载和最终执行 "load_cb（）" 回调则初始化引
+擎。
+
+然后 some_scene.json 场景被同时加载于前面的例子。唯一的区别是，该场景
+被加载之后，所述控制系统被初始化并可以用键盘和鼠标（或传感器屏幕）控制
+照相机运动。
+
+一旦使用 "app" 模块，就必须显式地指定尺寸的容器元素。否则为创建
+"<canvas>" 元素将具有零维度。
+
+
+背景透明
+========
+
+"background_color" 和 "alpha" 参数传递到  init 方法放在加载回调函数中
+（场景加载后调用的函数），像这样︰
+
+   m_app.init ({
+       alpha: true,
+       background_color: [0.7, 0.7, 0.7, 1]
+      //this method sets the background to an opaque light grey color
+   });
+
+参数传递给该方法的组合定义了 Blend4Web 应用如何和 HTML 应用程序的背景
+融合在一起。可用的选项包括︰
+
+1. "alpha" = false
+
+      背景的颜色由Blend4Web 应用程序的 "background_color" 定义，不考虑
+      HTML 应用程序的背景。
+
+[图片]
+
+2. "alpha" = true
+
+      HTML 应用程序的背景可能会影响基于其透明度由 Blend4Web 应用的
+      'background_color' 参数定义的四个分量的背景 ("alpha" =
+      "background_color[3]" ，不能混同于上面提到的 "alpha" 参数)。
+
+      background_color[3] = 1
+         这产生相同的结果，如同 alpha 参数已关闭 ("alpha"  = 假)
+
+      background_color[3] = 0
+         使用额外的混合
+
+         [图片]
+
+         上面图片显示一个包含与页面的红色 （' 红 '） 颜色生产了紫色基
+         调 [0，0，1] 的蓝色背景的 Blend4Web 应用程序的 HTML 页面。
+
+      background_color[3] > 0
+         额外的混合用  "background_color" 有更大的影响。
+
+         [图片]
+
+         这张照片显示相同的 HTML 页面相同的 Blend4Web 应用程序，但是，
+         alpha 值设置为 0.5，导致应用程序背景较暗的色调。
+
+在 颜色管理 章节更详细地介绍了 alpha 混合机制。
+
+默认情况下，"alpha" 参数设置为 true， "background_color" 设置为透明黑
+色 [0，0，0，0]，这意味着应用程序将具有 HTML 背景并没有影响到的
+Blend4Web 应用程序的背景。
+
+背景透明度还可以利用在 网页播放应用 利用 "alpha" URL 熟悉 。若要使用此
+功能，您首先需要创建应用程序时在  网页播放器参数 组中启用 "Background
+transparency (alpha)"  参数 。
+
+如果 Blend4Web 应用程序使用天空渲染，物体 （包括天空），将完全覆盖在应
+用画布上，背景将是完全不透明的不受 alpha 设置影响。
+
+注解: 默认情况下，在 项目管理器 中创建 Blend4Web 场景中启用天空渲染
+  。别忘 了，为了使用透明的背景，您将需要手动禁用天空渲染。
+
+
+资源转换
+========
+
+目前，浏览器不完全支持所有可能的媒体格式，所以为了创建跨浏览器应用程序
+（也为优化的目的），我们建议您使用的资源转换器。
+
+支持更广泛的平台，一个 Python 脚本 (*scripts/converter.py*) 为将源代码
+文件转换成其他格式后发布。
+
+有两种方式来运行此脚本。
+
+首先，您可以使用的项目管理系统自动运行它。 "Convert Resources" 按钮可
+以在 Project Manager 主页面中的发现，在操作选项卡中在屏幕的右侧。
+
+[图片]
+
+其次，您可以手动运行该脚本 ︰
+
+   > cd <path_to_sdk>/scripts
+   > python3 converter.py [options] resize_textures | convert_dds | convert_media
+
+对于MS Windows用户：
+
+   cd <path_to_sdk>\scripts
+   python converter.py [options] resize_textures | convert_dds | convert_media
+
+注解: 要运行的Python 3.x的需要安装在你的系统中的脚本。
+
+与-d参数可以指定路径，其中转换将在哪一个目录发生。
+
+要排除从资源转换的一些目录，它足以把一个文件名为``.b4w_no_conv`` 。这
+不会影响嵌套目录转换。
+
+**resize_textures** 参数用于为  **LOW** 模式降低纹理分辨率。
+
+
+Commands
+--------
+
+Commands for conversion:
+
+* "resize_textures" converts textures to lower resolution.
+
+* "convert_dds" converts textures to DDS format.
+
+* "convert_media" converts audio and video files to alternative
+  formats.
+
+Commands for resource cleanup:
+
+* "cleanup_textures" removes low resolution textures generated by
+  the "resize_textures" command.
+
+* "cleanup_dds" removers DDS texture files generated by the
+  "convert_dds" command.
+
+* "cleanup_media" removes audio and video files in alternative
+  formats that were generated by the "convert_media" command.
+
+Commands for image compression:
+
+* "compress_png" compresses PNG files in order to decrease their
+  size. This option requires OptiPNG tool to be installed and set up
+  in the "PATH" environment variable.
+
+Other commands:
+
+* "check_dependencies" checks converter dependencies
+
+
+Arguments
+---------
+
+* "-d", "--dir <dir_path>" enables using an alternative directory to
+  store converted files. The <dir_path> value specifies the path to
+  this directory.
+
+* "-j", "--jobs <jobs>" specifies the number of jobs (threads) to
+  run simultaneously. If this parameter is set to zero or is not
+  specified, the number will be calculated automatically based on the
+  number of CPUs.
+
+* "-v", "--verbose" enables outputting more information about files
+  that are being converted. For example, when converting textures into
+  DDS format, the script will show progress percentage for every file
+  that is being converted.
+
+
+依赖
+----
+
+请确保你已经安装了所有的依赖转换器。你可以用下面的命令做到这一点：
+
+   > python3 <path_to_sdk>/scripts/converter.py check_dependencies
+
+如果未安装某些程序，将显示以下信息：
+
+*找不到 PROGRAM_NAME。*
+
+**Linux**
+
+依赖关系的列表如下表：
+
++---------------------------------+---------------------------------+
+| 名称                            | Ubuntu 16.04 的包               |
++=================================+=================================+
+| ImageMagick                     | imagemagick                     |
++---------------------------------+---------------------------------+
+| NVIDIA纹理工具                  | libnvtt-bin                     |
++---------------------------------+---------------------------------+
+| Libav                           | libav-tools                     |
++---------------------------------+---------------------------------+
+| FFmpeg                          | FFmpeg                          |
++---------------------------------+---------------------------------+
+| PVRTC                           | 手动安装                        |
++---------------------------------+---------------------------------+
+
+注解: Linux用户还可以安装的用于优化加载媒体文件的包qt-faststart。
+
+**Windows**
+
+用于MS Windows用户来说是不必要安装的，因为它们已经存在于SDK来安装这些
+软件包。
+
+**macOS**
+
+macOS 用户可以安装  brew 包管理器，然后再安装任何缺失的软件包。
+
+在安装软件包之前，使用这些命令安装的libpng和libjpeg的库：
+
+   > brew install libpng
+   > brew install libjpeg
+
+现在，您可以安装需要的依赖着手：
+
+   > brew install imagemagick
+   > brew install --with-theora --with-libvpx --with-fdk-aac ffmpeg
+
+为了安装NVIDIA纹理工具，克隆使用以下命令库：
+
+   > git clone https://github.com/TriumphLLC/NvidiaTextureTools.git
+
+现在你可以编译和安装包：
+
+   > cd NvidiaTextureTools
+   > ./configure
+   > make
+   > make install
+
+
+数据格式
+--------
+
+如下进行转化：
+
+音频（convert_media）：
+   * ogg (ogv, oga) -> mp4
+
+   * mp3 -> oga
+
+   * mp4 (m4v, m4a) -> oga
+
+   * webm -> m4a
+
+我们推荐使用 "ogg" 作为基础格式。在这种情况下，跨浏览器的兼容性要求的
+唯一的转换将是 "ogg" 到 "mp4" 。输入文件的实例："file_name.ogg"，例如
+一个输出文件："file_name.altconv.mp4"。
+
+视频（convert_media）：
+   * ogg (ogv, oga) -> m4v / seq
+
+   * mp3 -> webm / seq
+
+   * mp4 (m4v, m4a) -> webm / seq
+
+   * webm -> m4v / seq
+
+我们推荐使用 "WebM" 作为基础格式。在这种情况下，跨浏览器的兼容性要求的
+唯一的转换将是 "webm" 到 "m4v" （"webm" 到 "seq" 为iPhone）。输入文件
+的实例："file_name.webm"，例如一个输出文件："file_name.altconv.m4v"。
+
+为图像（convert_dds）：
+   * png -> dds/pvr
+
+   * jpg -> dds/pvr
+
+   * bmp -> dds/pvr
+
+   * png -> dds
+
+输入文件的实例："file_name.jpg"，例如一个输出文件：
+"file_name.altconv.jpg.dds"。
+
+为了优化应用性能的目的，有可能使用 "min50" （减半）和 "DDS" 纹理。为了
+做到这一点，我们所需要的应用程序的初始化期间通过下列参数：
+
+   exports.init = function() {
+       m_app.init({
+           // . . .
+           assets_dds_available: true,
+           assets_min50_available: true,
+           // . . .
+       });
+       // . . .
+   }
+
+注解: 如果您打算将使用的纹理压缩成  PVRTC 格式，然后替换下面这行代码
+
+        assets_dds_available: true,
+
+  跟着下列：
+
+        assets_pvr_available: true,
+
+  这将告诉引擎加载PVRTC纹理，如果这些都存在于 "./assets/" 文件夹中。
+
+
+DDS纹理压缩
+~~~~~~~~~~~
+
+"DDS" 纹理需要较少的内存 （4 倍少 "RGBA" 数据，6 倍 RGB 数据），但使用
+它们具有以下缺点 ︰
+
+   * 'DDS' 纹理可能无法工作在一些设备上，尤其是移动的并不是所有支持
+     "WEBGL_compressed_texture_s3tc" 延伸;
+
+   * "DDS" 是一种有损压缩格式，压缩文物可能是可见的尤其是在 ︰ 正常
+     和 ︰ 模具 图; 它建议 ︰ 禁用压缩 对于这种纹理。
+
+   [图片]
+
+   "DDS" 压缩失真，特别是可见的阴影边缘上的一个例子。
+
+"JSON" 格式 （而不是 HTML 格式），从Blender导出场景，"DDS"  纹理将自动
+插入，如果它们存在。
+
+纹理可以转换为 "DDS" 格式，使用  项目管理器 或上文所述的
+*scripts/converter.py*  脚本。
+
+
+PVRTC 纹理压缩
+~~~~~~~~~~~~~~
+
+"PVRTC" 是另一种主要在 iOS 设备上使用的纹理压缩格式。在某些情况下它可
+以产生相同的纹理图像比其他 "DDS" 格式的小两倍。
+
+该格式具有由该引擎支持的两个压缩设置︰ 2-bpp （两位 / 像素） 和 4-bpp
+（四位 / 像素）。
+
+因为是 "DDS" 格式，纹理压缩算法 "PVRTC" 可能会在某些平台上不工作，特别
+是移动设备，因为使用这种压缩格式需要支持
+"IMG_texture_compression_pvrtc"  WebGL 扩展。
+
+PVRTC 库和 SDK，在 Windows、 Linux 和 macOS 系统相似。可以从 Power VR
+Insider  网页下载安装包。
+
+Blend4Web 引擎使用控制台 PVRTC 工具。若要使用它，你需要的路径添加到路
+径环境变量，类似于以下内容︰
+
+   export PATH = <InstallDir>\PVRTexTool\CLI\<PLATFORM>\
+
+哪里 <InstallDir> 是PVRTexTool安装目录， <PLATFORM> 是包含对应于您的操
+作系统，例如，"\ Windows_x86_64 \" 64位Windows操作系统的工具的版本的文
+件夹。
+
+注解: 在 Windows 系统中，环境变量可以设置 '系统' （在 Windows 10 和
+  8） 或 属性 （在 Windows 7 和 Vista） 对话窗口中，通过选择高级系统设
+  置-> 环 境变量，或使用控制台命令︰
+
+     SET PATH = <InstallDir>\PVRTexTool\CLI\<PLATFORM>\
+
+在此之后，您将能够通过使用 converter.py 脚本与 "convert_dds" 命令转换
+为 PVR 格式的纹理。
+
+
+SEQ视频格式
+~~~~~~~~~~~
+
+在 ".seq" 文件格式用于顺序视频。这是适用于IE 11和iPhone，因为他们目前
+缺少标准的视频格式支持的纹理。采用DDS格式的图像与其他格式相比是更理想
+的。
+
+该引擎可以使用，如果他们有以下名称，手动由用户创建的文件:
+"file_name.altconv.m4v", "file_name.altconv.mp3" 等等。此类文件应放在
+同一目录中的媒体文件在Blender中使用。
+
+您还可以使用的免费和跨平台的应用 Miro视频转换器 转换媒体文件。
+
+
+示例代码
+========
+
+SDK中包含的代码片段应用程序，它演示了如何使用引擎的功能。
+
+目前，这款应用程序包含以下例子：
+
+   * Bone API - 个体的骨骼位置控制的一个例子
+
+   * Camera Animation -  程序相机动画
+
+   * Camera Move Styles -  相机改变控制方式
+
+   * Canvas Texture -  用帆布质地的工作
+
+   * 更改图像 - 即时更改纹理图像
+
+   * Custom Anchors -创建自定义的注解
+
+   * Dynamic Geometry -程序几何修改
+
+   * 手柄 - 经由手柄控制角色的一个例子
+
+   * Gyro (Mobile Only) -  与移动设备的陀螺仪工作
+
+   * Instancing - 复制现场运行时对象
+
+   * 线 - 程序线渲染
+
+   * Material API - 调整材质的性能和替换对象的材质
+
+   * Morphing - 利用形状键
+
+   * 多点触控（仅限移动设备） - 使用移动设备的多点触控传感器
+
+   * 寻路 - 计算路径，并使用导航网格的例子
+
+   * Ray Test - 光线投射的障碍物检测使用
+
+   * VR - initializing a VR application
+
+   * 网络摄像头 - 利用来自Web摄像头的媒体流
+
+代码片段的应用在 "./apps_dev/code_snippets/code_snippets_dev.html". 它
+可以通过使用位于SDK根的 "index.html" 文件的链接也可以运行。
+
+
+加载应用程序资产
+================
+
+为了简化项目维护和服务器部署总是将你的项目文件（的JavaScript，CSS，
+HTML等）和您的应用程序资源文件（导出的场景，纹理，声音等）分开。你的
+SDK这里面的资产目录位于 "projects/my_project/assets".
+
+要（通过使用如 load())从该目录中加载文件使用 get_assets_path() 方法：
+
+   m_data.load(m_config.get_assets_path("my_project") + "loaded_scene.json", load_cb);
+
+这样可以确保您的应用程序将独立于目前的开发阶段寻找资产（开发，构建或部
+署）。
+
+
+事件驱动模型
+============
+
+事件驱动模型提供一个通用接口描述的三维场景变化的状态。它简化了加工的物
+理事件和用户操作。
+
+
+传感器
+------
+
+事件驱动模型的基本单元是一个传感器。传感器是一种编程实体和只能是活动的
+（1，一种）或无效（0，零）。一些传感器可以携带可以在歧管的回调函数与对
+应的API接收一个有效载荷。例如，光线跟踪传感器（线传感器）提供的交点射
+线的相对长度。
+
+用户不能直接通过外部 API控制传感器。相反，所有的传感器都必须存在于一个
+或多个集合-所谓的传感器流形。一个流形是与场景对象相关联的逻辑容器。它
+通过执行一个回调函数生成一组定义的传感器事件响应。要定义的流形，它须有
+以下信息 （请参见的 'controls.create_sensor_manifold' 功能描述 API 文
+档） ︰
+
+* 一个对象带流行（如抛出的对象）。
+
+* 流形 （如"冲击"） 的唯一 id。
+
+* 回调的执行模式（选项有："CT_POSITIVE"  - 逻辑功能正结果，
+  "CT_CONTINUOUS"  - 以正逻辑功能的结果，并用一次结果为零每一帧，
+  "CT_LEVEL"  - 任何逻辑，函数结果改变，"CT_SHOT"  - 一期逻辑函数结果
+  的变化，"CT_TRIGGER"  - 逻辑函数的结果开关，"CT_CHANGE"  - 任何传感
+  器值变化）。
+
+* 传感器阵列。
+
+* 逻辑函数来定义其中执行回调函数传感器状态的组合。
+
+* 一个回调函数。
+
+* 一个可选参数传递到回调函数。
+
+你可以阅读更多有关在  controls 模块文档引擎API。
+
+
+示例
+----
+
+让我们考虑到 insonify 任务被投掷的石头的影响。不同的媒体 （例如地形和
+墙）应产生独特的声音影响。有碰撞网格与Blender场景中的物理材质，材质的
+id 是"地形"和"墙"。也是被抛在场景中的物理对象，该对象被命名为"石头"。
+
+让我们定义碰撞传感器的每个介质类型的声音产生。
+
+   // import the modules
+   var m_scenes = b4w.require("scenes");
+   var m_controls = b4w.require("controls");
+
+   // get the object being thrown
+   var stone = m_scenes.get_object_by_name("Stone");
+
+   // create the sensors
+   var sensor_impact_terrain = m_controls.create_collision_sensor(stone, "TERRAIN");
+   var sensor_impact_wall    = m_controls.create_collision_sensor(stone, "WALL");
+
+传感器添加到阵列。使用 "OR" 逻辑的逻辑功能。放置在回调函数的声音处理的
+代码。创建传感器歧管的“影响”id和 "CT_SHOT" 类型。
+
+   // array of the sensors
+   var impact_sens_array = [sensor_impact_terrain, sensor_impact_wall];
+
+   // manifold logic function
+   var impact_sens_logic = function(s) {return (s[0] || s[1])};
+
+   // callback
+   var impact_cb = function(obj, manifold_id, pulse) {
+
+       // NOTE: it's possible to play both sounds simultaneously
+
+       if (m_controls.get_sensor_value(obj, manifold_id, 0) == 1) {
+           // ...
+           console.log("play the terrain impact sound");
+       }
+
+       if (m_controls.get_sensor_value(obj, manifold_id, 1) == 1) {
+           // ...
+           console.log("play the wall impact sound");
+       }
+   }
+
+   // create the manifold
+   m_controls.create_sensor_manifold(stone, "IMPACT", m_ctl.CT_SHOT,
+       impact_sens_array, impact_sens_logic, impact_cb);
+
+当 “石头” 的物体与“地形”或“墙”的任何物理材质碰撞时，被执行的回调函数。
+在这个函数中，我们通过自己的传感器阵列中获得指数两个传感器的值 （0 - “
+地形”，1  - “墙”）。传感器值 = 1（活性）是指发生碰撞与相应的物理材质。
+其结果是，相应的声音产生（未示出的代码）。
+
+
+SDK文件结构
+===========
+
+**addons**
+   **blend4web**
+      Blender插件
+
+**apps_dev**
+   SDK 应用程序源代码
+
+   **code_snippets**
+      Code Snippets应用程序的源文件
+
+      **scripts**
+         Blend4Web API用法示例的源文件
+
+   **dairy_plant**
+      乳品厂演示源文件（仅适用于SDK专业版）
+
+   **demos_animation**
+      基本的动画演示的项目文件
+
+   **demos_environment**
+      基本的环境演示项目文件
+
+   **demos_interactivity**
+      基本交互演示的项目文件
+
+   **demos_materials**
+      基础材质演示项目文件
+
+   **demos_media**
+      基本的媒体演示项目文件
+
+   **demos_particles**
+      基本粒子演示项目文件
+
+   **demos_physics**
+      基本的物理演示项目文件
+
+   **demos_postprocessing**
+      基本的后处理演示项目文件
+
+   **farm**
+      农场演示源文件（仅适用于SDK专业版）
+
+   **fashion**
+      时装秀演示源文件（仅适用于SDK专业版）
+
+   **flight**
+      岛演示的源文件
+
+   **new_year**
+      在2015年新年贺卡的源文件
+
+   **project.py**
+      脚本的应用程序开发人员
+
+   **space_disaster**
+      空间灾害应用程序的源文件
+
+   **tutorials**
+      Blend4Web 教程的源文件
+
+   **victory_day_2015**
+      胜利日70周年贺卡的源文件
+
+   **viewer**
+      浏览器应用程序的源文件
+
+   **webplayer**
+      在Web应用程序播放器的源文件
+
+   **website**
+      从Blend4Web官方网站上的应用程序的源文件
+
+**blender**
+   Blender的场景源文件
+
+**csrc**
+   源代码（C语言）引擎出口的二进制部分和其他公用设施
+
+**deploy**
+   在服务器上部署（场景源文件编译的应用程序和文档）的资源目录
+
+   **api_doc**
+      为开发人员API文档（自动构建，基于引擎的源代码）
+
+   **apps**
+      用于部署3D应用;目录重复 *apps_dev*
+
+      **common**
+         已编译引擎文件。从 SDK 的所有应用程序共享的 (因此名称)。
+
+   **assets**
+      应用程序资产︰ 场景、 纹理和声音
+
+   **doc**
+      从自动生成的 HTML 格式的当前用户手册 *doc_src*
+
+   **webglreport**
+      WebGL 报告应用程序
+
+**distfiles**
+   构建发布文件列表
+
+**doc_src**
+   当前手册的源文件用reST格式书写
+
+**index.html** 和 **index_assets**
+   主要SDK网页文件
+
+**license**
+   与许可证的文本文件
+
+**Makefile**
+   建立引擎，应用程序和文档的makefile文件
+
+**projects**
+   用户项目目录
+
+**README.rst**
+   README文件
+
+**scripts**
+   脚本
+
+   **check_resources.py**
+      脚本的检查和未使用的资源报告（图像和声音通过导出的文件中引用）
+
+   **compile_b4w.py**
+      构建引擎代码和应用程序的脚本
+
+   **converter.py**
+      脚本减半纹理尺寸，压缩纹理成DDS格式，声音文件转换成MP4和Ogg格式
+
+   **custom_json_encoder.py**
+      JSON的Python模块的分支，排序顺序相反的键
+
+   **gen_glmatrix.sh**
+      脚本基于glMatrix 2的源代码生成所述数学模块
+
+   **graph.sh**
+      为当前场景图SVG生成器，用于调试渲染
+
+   **make_dist.py**
+      发行构建脚本
+
+   **memory.sh**
+      脚本，用于检查存储器（RAM）和视频存储器（VRAM）
+
+   **mod_list.py**
+      脚本用于生成的模块列表在新的应用程序使用
+
+   **plot.sh**
+      调试信息图形生成器
+
+   **process_blend.py**
+      从SDK所有场景自动再导出脚本
+
+   **remove_alpha_channel.sh**
+      去除图像的 alpha 通道的脚本
+
+   **screencast.sh**
+      屏幕录像脚本
+
+   **shader_analyzer.py**
+      开始其计算着色器的复杂度的本地Web服务器脚本
+
+   **translator.py**
+      构建插件翻译脚本
+
+**shaders**
+   引擎GLSL着色
+
+**src**
+   引擎的内核的主要源代码
+
+   **addons**
+      引擎插件的源代码
+
+   **ext**
+      形成了引擎的API外部声明的源代码
+
+   **libs**
+      库的源代码
+
+**tmp**
+   临时文件 （例如快速预览） 目录
+
+**tools**
+   various tools for building the engine, apps or convert resources
+
+   **converter_utils**
+      二进制构建的工具，资源转换
+
+   **closure-compiler**
+      谷歌闭包编译器，它的扩展和他们的生成器
+
+   **glsl**
+      **compiler**
+         编译器为引擎的GLSL着色
+
+      **pegjs**
+         在PEG.js解析器生成的语法实现了GLSL预处理器，也是脚本从这些生
+         成语法解析器模块
+
+   **yuicompressor**
+      实用压缩CSS文件
+
+**uranium**
+   Uranium 物理引擎的源代码和脚本建筑（Bullet的分支）
+
+**VERSION**
+   包含引擎的当前版本
+
+
+加载本地资源
+============
+
+该引擎的渲染器是一个Web应用程序，当你在浏览器中查看HTML文件它就工作。
+初始化之后，资源（场景，纹理）加载。这个过程是受 同源策略 规则。这条规
+则特别规定从本地目录加载禁止。
+
+自15.02版，Blend4Web SDK包括  开发服务器 解决加载本地资源的问题。
+
+
+品质配置
+========
+
+几个质量配置文件，以支持具有不同功能的平台上实现。
+
+   * 低质量（"P_LOW"） - 功能的范围被关闭（如阴影，动态反映，后处理
+     ） ，纹理的大小采用发行版本时减半，抗锯齿被禁用
+
+   * 高品质（"P_HIGH"）- 由现场所要求的所有功能的使用，抗锯齿的方法
+     是 FXAA
+
+   * 最高的质量（"P_ULTRA"） - 渲染分辨率加倍，阴影贴图分辨率的增加
+     ， 抗锯齿的方法是FXAA（使用更高质量的设置和工作速度较慢）。
+
+   * 自定义质量（"P_CUSTOM"） - 任何质量参数可以设置为任何可能值。当
+     你 需要手动设置一定的质量参数，使用此选项。默认情况下，它使用相同
+     的 设置``High``质量配置文件。
+
+[图片]
+
+
+
+切换品质配置可在运行时的WebGL上下文的初始化之前进行。默认的配置文件是
+``P_HIGH``。
+
+   var m_cfg = b4w.require("config");
+   var m_main = b4w.require("main");
+
+   m_cfg.set("quality", m_cfg.P_LOW);
+   m_main.init(...);
+
+应用程序开发人员还可以在引擎初始化参数的 "app.js" 附加插件时设置
+**quality** ：
+
+   var m_cfg = b4w.require("config");
+   var m_app = b4w.require("app");
+
+   m_app.init({
+       canvas_container_id: "body_id",
+       quality: m_cfg.P_HIGH
+   });
+
+
+Non-Standard Canvas Position and Orientation
+============================================
+
+画布元件，开始执行渲染时，可改变相对于浏览器窗口的位置。这可能是由于一
+些操作在DOM树，或者作为页面滚动的结果，特别是用于非全屏web应用。
+
+在大多数情况下，这将不会影响该应用的任何的性能。然而，涉及到鼠标或触摸
+位置某些DOM事件可以携带不正确的信息。这是因为从相应的事件中获得的坐标
+是相对于浏览器窗口的原点测量，同时引擎的工作与Canvas元素本身（它的坐标
+原点位于左上角）的坐标空间。
+
+1. If the top left corner of the Canvas element matches the top
+   left corner of the browser window and is fixed in its position
+   (non- movable) then it's sufficient to use event.clientX and
+   event.clientY coordinates of the input events or get_coords_x() and
+   get_coords_y() methods.
+
+   var m_mouse = require("mouse");
+
+   // . . .
+   var x = event.clientX;
+   var y = event.clientY;
+   // . . .
+   var x = m_mouse.get_coords_x(event);
+   var y = m_mouse.get_coords_y(event);
+   // . . .
+
+
+
+2. In the case of more sophisticated manipulations with the Canvas
+   element (scrolling of the page elements, displacement from the top
+   level corner of the browser window, changes in the DOM-tree) it's
+   needed to obtain properly calculated coordinates. This can be done
+   by using the aforementioned get_coords_x() and get_coords_y()
+   methods with a "true" value as a third parameter:
+
+   var m_mouse = require("mouse");
+
+   // . . .
+   var x = m_mouse.get_coords_x(event, false, true);
+   var y = m_mouse.get_coords_y(event, false, true);
+   // . . .
+
+
+
+Another option in this case is to use the client_to_canvas_coords()
+method as follows:
+
+   var m_cont = require("container");
+
+   var _vec2_tmp = new Float32Array(2);
+
+   // . . .
+   var coords_xy = m_cont.client_to_canvas_coords(event.clientX, event.clientY, _vec2_tmp);
+   // . . .
+
+
+Mobile Web Apps
+===============
+
+An option to scale the whole webpage and change the orientation of a
+mobile device should be considered when creating user interface for a
+web application. It is recommended to prevent scaling and keep the
+aspect ratio of a webpage constant to avoid possible problems. This
+can be achieved by adding the following meta-tag to the page header:
+
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+Sometimes you might need to lock a mobile device to a certain
+orientation, especially when you don't want to make both landscape and
+portrait interface variants. Since the native screenlock API is
+experimental and isn't widespread, this might be easier to do using
+CSS rules.
+
+To keep the orientation in landscape mode only, one can set rotation
+for the <html> element by 90 degrees in the portrait mode:
+
+   @media (orientation : portrait) {
+       html {
+           position: absolute;
+           width: 100vh;
+           height: 100vw;
+           overflow: hidden;
+
+           -moz-transform: rotate(90deg);
+           -ms-transform: rotate(90deg);
+           -webkit-transform: rotate(90deg);
+           transform: rotate(90deg);
+           -moz-transform-origin: top left;
+           -ms-transform-origin: top left;
+           -webkit-transform-origin: top left;
+           transform-origin: top left;
+
+           left: 100%;
+       }
+   }
+
+
+
+Similarly, the CSS rule for the portrait mode only should look like
+the following:
+
+   @media (orientation : landscape) {
+       html {
+           position: absolute;
+           width: 100vh;
+           height: 100vw;
+           overflow: hidden;
+
+           -moz-transform: rotate(-90deg);
+           -ms-transform: rotate(-90deg);
+           -webkit-transform: rotate(-90deg);
+           transform: rotate(-90deg);
+           -moz-transform-origin: top left;
+           -ms-transform-origin: top left;
+           -webkit-transform-origin: top left;
+           transform-origin: top left;
+
+           top: 100%;
+       }
+   }

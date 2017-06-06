@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+<script src="common/b4w.min.js"></script>
+<script type="text/javascript">
+    function hello() {
+        // var m_version = b4w.require("version");
+        // document.body.innerHTML = "Hello, Blend4Web " + m_version.version() + "!";
+  
+        const main = b4w.require('main');
+        const data = b4w.require('data');
+        const app = b4w.require('app');
+
+  
+        // const canvas = document.getElementById('canvas');
+        // main.init(canvas);
+        // data.load('./my_json.json');
+
+        app.init({
+            canvas_container_id: "container",
+            callback: load_cb,
+             alpha: true,
+                background_color: [0.7, 0.7, 0.7, 0.5]
+        });
+         
+        function load_cb() {
+           
+            data.load("my_json.json", loaded_cb);
+        }
+
+        function loaded_cb() {
+            app.enable_camera_controls();
+        }
+    }
+</script>
+</head>
+<body onload="hello()">
+ <div id="container" style="width: 900px; height: 600px;background-color: red"></div>
+<canvas id="canvas"></canvas>
+
+</body>
+</html>

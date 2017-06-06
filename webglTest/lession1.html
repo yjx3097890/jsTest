@@ -178,6 +178,7 @@
 		pMatrix = okMat4Proj(90, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);   //透视投影	/**首先从单位矩阵开始——这个矩阵意味着不进行任何变换——然后乘以你将要进行的第一个变换的矩阵，再乘以你将要进行的第二个变换的矩阵，然后第三个、第四个……最后乘积所得到的矩阵代表了所有你进行过的变换。用来表示当前位移/旋转状态的矩阵我们称之为“模型视图矩阵”（model-view matrix） */
 		mvMatrix = okMat4Trans(-1.5, 0.0, -7.0); //用okMat4Trans函数生成了一个位移矩阵，然后赋值给mvMatrix。位移的起点就是3D空间的中心
 		gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer); 
+        
 		//vertexAttribPointer：为attribute变量赋值 ；false表示坐标不是标准化的，第五个参数是步长值，表示取得下个值时，需要跳过多少个元素；最后一个是起点偏移量，表示从哪个开始
         gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0); //			告诉WebGL这个数组对象中的值是用来表示顶点位置	
 		setMatrixUniforms(); 

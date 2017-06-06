@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+</head>
+<body style="margin: 10px">
+<canvas width="1024px" height="600px" id="canvas"></canvas>
+
+<script type="text/javascript">
+	const canvas = document.getElementById("canvas");
+	const gl = canvas.getContext("webgl",  {antialias: true});	
+
+	const vertexShader = `
+		attribute vec2 position; //the position of the point
+		attribute vec3 color; //点的颜色（R,G,B）
+
+		varying vec3 vColor; //用于将颜色传递到片元着色器
+
+		void main(void) { //pre-built function
+			gl_Position = vec4(position, 0.0, 1.0); //0. is the z, and 1 is w
+			vColor = color; //vColor是顶点之间的差值
+		}
+	`;
+	const fragmentShader = `
+		precision mediump float; 
+
+		varying vec3 vColor; //对应顶点着色器的vColor
+
+		void main(void) {
+			gl_FragColor = vec4(vColor, 1.);  //black
+		}	
+	`;
+
+	const compileShader = function (source, type) {
+		const shader = gl.createShader(type);
+		gl.shaderSource(shader, source);
+		gl.compileShader(shader);
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			alert("ERROR IN "+ type + " SHADER : " + gl.getShaderInfoLog(shader));
+			return false;
+		}
+		return shader;
+	}
+
+	let vShader = compileShader(vertexShader, gl.VERTEX_SHADER);
+	let fShader = compileShader(fragmentShader, gl.FRAGMENT_SHADER);
+
+	const shaderProgram = gl.createProgram();  //WebGLProgram是编译过的顶点着色器和片元着色器的组合。
+	gl.attachShader(shaderProgram, vShader);
+	gl.attachShader(shaderProgram, fShader);
+	
+	gl.linkProgram(shaderProgram); //连接到webgl的上下文gl上，用于将shader中的变量连接到js的变量
+
+	let color = gl.getAttribLocation(shaderProgram, 'color');
+	let position = gl.getAttribLocation(shaderProgram, 'position');
+	gl.enableVertexAttribArray(color);
+	gl.enableVertexAttribArray(position);  //指定顶点属性的index，必须enable
+
+	gl.useProgram(shaderProgram);  //告诉gl使用该program渲染
+
+	//顶点坐标数组
+	const triangleVertex = [ -1, -1,
+	0, 0, 1,   //第一个点蓝色
+	 1, -1 ,
+	 1, 1, 0, //第二个点黄色
+	  1, 1,
+	  	 1, 0, 0 //第三个点红色
+		   ];
+
+	const pointBuffer = gl.createBuffer();  //保存顶点或颜色的 WebGLBuffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer); //pointBuffer 到 gl.ARRAY_BUFFER
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertex), gl.STATIC_DRAW); //建立buffer对象的数据存储， 绑定到gl.ARRAY_BUFFER
+
+	//顶点渲染顺序
+	const triangleFaces = [0, 1, 2];
+	const faceBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer); //gl.ELEMENT_ARRAY_BUFFER, 表示buffer用于元素索引。
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(triangleFaces), gl.STATIC_DRAW);
+
+	//渲染
+	gl.clearColor(0, 0, 0, 0);
+
+	const animate = function () {
+		gl.viewport(0, 0, canvas.width, canvas.height);  //设置渲染区域，将normalized device coordinates（坐标值范围是从0到1）仿射变换为窗口坐标。
+		gl.clear(gl.COLOR_BUFFER_BIT); //清除buffers为预设值。通过 clearColor(), clearDepth() or clearStencil()预设。COLOR_BUFFER_BIT对应clearColor().
+
+		//draw
+		gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+		gl.vertexAttribPointer(position, 2, gl.FLOAT, gl.FALSE, 4*(2+3), 0); //指定数据格式，和顶点在数组中的位置。
+		//void gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
+			// index 指定顶点参数位置.
+			// size 指定每组顶点参数的元素个数，类似维度。 Must be 1, 2, 3, or 4.
+			// type 指定顶点参数的数据类型。Must be one of: gl.BYTE, gl.UNSIGNED_BYTE, gl.SHORT, gl.UNSIGNED_SHORT, gl.FLOAT.
+			// normalized  指定坐标不是标准化的。
+			// stride 指定顶点参数起始位置之间的字节偏移量，即间隔。
+			// offset 指定第一个顶点在顶点数组中的字节偏移量，必须是指定type的倍数。
+		gl.vertexAttribPointer(color, 3, gl.FLOAT, gl.FALSE, 4*(2+3), 2*4 );  //一个float4字节
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer);
+		gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);  //从ELEMENT_ARRAY_BUFFER，渲染基元形状
+		// void gl.drawElements(mode, count, type, offset);
+			// mode 指定基元形状的类型，Possible values are:
+				// gl.POINTS: 单个点.
+				// gl.LINE_STRIP: 到下个顶点的一条直线.
+				// gl.LINE_LOOP: 到下个顶点的一条直线，再链接最后一个点和第一个点。
+				// gl.LINES: 在两点间画一条线
+				// gl.TRIANGLE_STRIP 以带状顺序画三角形面
+				// gl.TRIANGLE_FAN 以风扇顺序画三角形面
+				// gl.TRIANGLES: 三个点一组画三角形面
+			// count 指定渲染元素的个数
+			// type 指定element array buffer中值的类型。有：
+				// gl.UNSIGNED_BYTE
+				// gl.UNSIGNED_SHORT
+				// gl.UNSIGNED_INT
+			// offset 指定element array buffer中起始元素的偏移量。必须是指定type的倍数。
+
+
+		gl.flush();  //清空buffer
+
+
+		requestAnimationFrame(animate);
+	}
+
+	animate();
+</script>
+</body>
+</html>

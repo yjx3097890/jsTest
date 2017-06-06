@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>example</title>
+<link rel="stylesheet" href="./codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="./codemirror/mode/glsl/glsl.css">
+<style>
+	.CodeMirror{
+		position: absolute; 
+		z-index: 10; 
+		top: 100px; 
+		left: 100px;
+		background-color: rgba(1,1,1,0.1);
+	}
+	.CodeMirror-gutters{
+		background-color: rgba(1,1,1,0.1);
+	}
+
+</style>
+</head>
+<body style="margin: 10px">
+<canvas width="600px" height="600px" id="canvas" style="background-color: black"></canvas>
+ 
+
+<script src="./codemirror/lib/codemirror.js"></script>
+<script src="./codemirror/mode/glsl/glsl.js"></script>
+<script type="text/javascript">
+	const canvas = document.getElementById("canvas");
+	const gl = canvas.getContext("webgl",  {antialias: true});	
+	const mousePosition = [0, 0];
+	document.addEventListener('mousemove', (event) => {
+		[mousePosition[0], mousePosition[1]] = [event.clientX, event.clientY];
+	}, false);
+ 
+
+
+	const vertexShader = `
+		attribute vec2 position; //the position of the point
+
+
+		varying vec2 surfacePosition; //递到片元着色器
+
+		void main(void) { //pre-built function
+			gl_Position = vec4(position, 0.0, 1.0); //0. is the z, and 1 is w
+			surfacePosition = position; //顶点之间的差值
+		}
+	`;
+	const fragmentShader = `
+precision mediump float;
+
+uniform vec2 mouse;
+uniform float time;
+uniform vec2 resolution;
+varying vec2 surfacePosition;
+
+
+vec3 LIGHT_DIR = normalize(vec3(0,1.1,-0.8));
+vec3 CAMERA_POS = vec3(0.0, 0.8, -1.5);
+
+mat3 rotate3d(vec3 axis, float angle) {
+axis = normalize(axis);
+float s = sin(angle);
+float c = cos(angle);
+float oc = 1.0 - c;
+
+return mat3(oc*axis.x*axis.x+c, oc*axis.x*axis.y - axis.z*s, oc*axis.z*axis.x + axis.y*s,
+oc*axis.x*axis.y+axis.z*s, oc*axis.y*axis.y+c, oc * axis.y*axis.z - axis.x*s,
+oc*axis.z*axis.x-axis.y*s, oc*axis.y*axis.z+axis.x*s, oc*axis.z*axis.z+c);
+}
+
+float de(in vec3 p) {
+p = rotate3d(vec3(sin(time*0.25),sin(time*0.125),sin(time*0.1125)),time)*p;
+
+for(int i = 0; i < 3; i++) {
+p *= normalize(p);
+p = rotate3d(vec3(sin(time*0.25),sin(time*0.125),sin(time*0.1125)),time+sin(time*0.321)+cos(float(i)+time*0.231))*p;
+}
+
+return length(p) - 0.1;
+}
+
+vec3 ray_march(in vec3 p, in vec3 dir) {
+float td = 0.0;
+for(int i = 0; i < 12; i++) {
+td += de(p + td*dir);
+}
+return p + td*dir;
+}
+
+vec3 normal(in vec3 p) {
+const vec3 E = vec3(0.00001, 0.0, 0.0);
+return normalize(vec3(
+de(p+E.xyy)-de(p-E.xyy),
+de(p+E.yxy)-de(p-E.yxy),
+de(p+E.yyx)-de(p-E.yyx)
+));
+}
+
+const float SHININESS = 1.1;
+vec3 view = normalize(vec3(1.));
+vec3 specular_reflection(in vec3 normal, in vec3 dir) {
+if (dot(normal, LIGHT_DIR) < 0.0) {
+return vec3(0.0, 0.0, 0.0);
+}
+else {
+return vec3(1.)*pow(dot(reflect(-LIGHT_DIR, normal), view), SHININESS);
+}
+}
+
+float diffuse_factor(in vec3 normal) {
+return 2.*clamp(dot(normal, LIGHT_DIR), 0.1, 1.0);
+}
+
+vec4 color(in vec3 p) {
+vec3 norm = normal(p);
+return vec4(norm*norm,1.)*diffuse_factor(p);
+}
+
+void main(void) {
+vec2 screen = 2.*(gl_FragCoord.xy / resolution.xy * vec2(1., resolution.y/resolution.x) - vec2(0.5));
+
+vec3 dir = normalize(vec3(screen.xy, 0.9));
+vec3 p = CAMERA_POS;
+
+vec3 end = ray_march(p, dir);
+
+gl_FragColor = 2.*(color(end)+vec4(specular_reflection(normal(end), dir),0.)/2.5)/(distance(end,p)-0.5);
+}
+	`;
+
+
+	const compileShader = function (source, type) {
+		const shader = gl.createShader(type);
+		gl.shaderSource(shader, source);
+		gl.compileShader(shader);
+		// if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		// 	alert("ERROR IN "+ type + " SHADER : " + gl.getShaderInfoLog(shader));
+		// 	return false;
+		// }
+		return shader;
+	}
+
+	const fragmentShaderTextarea = document.getElementById('fragmentSourceTextarea');
+	const myCodeMirror = CodeMirror(document.body,  {
+		value: fragmentShader,
+		mode:  "text/x-glsl",
+		lineNumbers: true,
+		matchBrackets: true,
+    	indentWithTabs: true
+});
+	
+
+	let vShader = compileShader(vertexShader, gl.VERTEX_SHADER);
+
+	let shaderProgram;
+
+	let position;
+	let resolution;
+	let time;
+	let mouse;
+	const refreshShader = function() {
+		let fShader = compileShader(myCodeMirror.getValue(), gl.FRAGMENT_SHADER);
+
+		 if (gl.getShaderParameter(fShader, gl.COMPILE_STATUS)) {
+			shaderProgram = gl.createProgram(); 
+			gl.attachShader(shaderProgram, vShader);
+			gl.attachShader(shaderProgram, fShader);
+			
+			gl.linkProgram(shaderProgram); 
+
+
+			position = gl.getAttribLocation(shaderProgram, 'position');
+			time = gl.getUniformLocation(shaderProgram, 'time');
+			resolution = gl.getUniformLocation(shaderProgram, 'resolution');
+			mouse = gl.getUniformLocation(shaderProgram, 'mouse')
+
+			gl.enableVertexAttribArray(position);  
+
+			gl.useProgram(shaderProgram);  	
+		}
+		
+	}
+
+	refreshShader();
+	myCodeMirror.on('change', refreshShader); 
+
+
+	//顶点坐标数组
+	const triangleVertex = [ 
+		-1, -1,
+		1, -1 ,
+	  	1, 1,
+		-1, 1
+		   ];
+
+	const pointBuffer = gl.createBuffer();  //保存顶点或颜色的 WebGLBuffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer); //pointBuffer 到 gl.ARRAY_BUFFER
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertex), gl.STATIC_DRAW); //建立buffer对象的数据存储， 绑定到gl.ARRAY_BUFFER
+
+	//顶点渲染顺序
+	const triangleFaces = [0, 1, 2, 0, 2, 3];
+	const faceBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer); //gl.ELEMENT_ARRAY_BUFFER, 表示buffer用于元素索引。
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(triangleFaces), gl.STATIC_DRAW);
+
+	//渲染
+	gl.clearColor(0, 0, 0, 0);
+
+	const animate = function (timestamp) {
+		gl.viewport(0, 0, canvas.width, canvas.height); 
+		gl.clear(gl.COLOR_BUFFER_BIT); 
+
+		gl.uniform2f(resolution, canvas.width, canvas.height);
+		gl.uniform2fv(mouse, mousePosition);
+		gl.uniform1f(time, timestamp* 0.001);
+
+		//draw
+		gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+		gl.vertexAttribPointer(position, 2, gl.FLOAT, gl.FALSE, 4*(2), 0); //指定数据格式，和顶点在数组中的位置。
+		
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer);
+		gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);  //从ELEMENT_ARRAY_BUFFER，渲染基元形状
+	
+
+
+		gl.flush();  //清空buffer
+
+
+		requestAnimationFrame(animate);
+	}
+
+	animate(0);
+</script>
+</body>
+</html>

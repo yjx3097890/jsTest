@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html >
+<head>
+<title>example</title>
+</head>
+<body style="margin: 10px">
+<canvas width="1024px" height="600px" id="canvas"></canvas>
+
+<script src="./matrixLibs.js"></script>
+<script type="text/javascript">
+	const canvas = document.getElementById("canvas");
+	const gl = canvas.getContext("webgl",  {antialias: true});	
+
+	const vertexShader = `
+		attribute vec3 position; //the position of the point
+		attribute vec3 color; //点的颜色（R,G,B）
+		uniform mat4 Pmatrix; //uniform变量的值在渲染中不变
+		uniform mat4 Mmatrix; //模型变换矩阵：平移+旋转+缩放
+		uniform mat4 Vmatrix; //视图变换矩阵：平移+旋转
+
+		varying vec3 vColor; //用于将颜色传递到片元着色器
+
+		void main(void) { //pre-built function
+			gl_Position = Pmatrix * Vmatrix * Mmatrix * vec4(position, 1.0);  //矩阵运算在GPU中比在CPU中快得多。
+			vColor = color; //vColor是顶点之间的差值
+		}
+	`;
+	const fragmentShader = `
+		precision mediump float; 
+
+		varying vec3 vColor; //对应顶点着色器的vColor
+
+		void main(void) {
+			gl_FragColor = vec4(vColor, 1.);  //black
+		}	
+	`;
+
+	const compileShader = function (source, type) {
+		const shader = gl.createShader(type);
+		gl.shaderSource(shader, source);
+		gl.compileShader(shader);
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			alert("ERROR IN "+ type + " SHADER : " + gl.getShaderInfoLog(shader));
+			return false;
+		}
+		return shader;
+	}
+
+	let vShader = compileShader(vertexShader, gl.VERTEX_SHADER);
+	let fShader = compileShader(fragmentShader, gl.FRAGMENT_SHADER);
+
+	const shaderProgram = gl.createProgram();  
+	gl.attachShader(shaderProgram, vShader);
+	gl.attachShader(shaderProgram, fShader);
+	
+	gl.linkProgram(shaderProgram); 
+
+	const Pmatrix = gl.getUniformLocation(shaderProgram, 'Pmatrix'); //链接GLSL的uniform变量和js的变量Pmatrix，uniform变量不需要enable
+	const Mmatrix = gl.getUniformLocation(shaderProgram, 'Mmatrix');
+	const Vmatrix = gl.getUniformLocation(shaderProgram, 'Vmatrix');
+
+	let color = gl.getAttribLocation(shaderProgram, 'color');
+	let position = gl.getAttribLocation(shaderProgram, 'position');
+	gl.enableVertexAttribArray(color);
+	gl.enableVertexAttribArray(position);  
+
+	gl.useProgram(shaderProgram);  
+
+	//顶点坐标数组
+	const triangleVertex = [   
+		-1, -1, 0,            //z=0,将三角形放在视图坐标系的XY平面，即摄像机所在的平面，就是物体参考系。
+		0, 0, 1,   
+		1, -1 , 0,
+		1, 1, 0, 
+		1, 1, 0,
+		1, 0, 0 
+	];
+
+	const pointBuffer = gl.createBuffer();  
+	gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer); 
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertex), gl.STATIC_DRAW); 
+
+	//顶点渲染顺序
+	const triangleFaces = [0, 1, 2];
+	const faceBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer); 
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(triangleFaces), gl.STATIC_DRAW);
+
+	// 3D视图坐标：
+	// 	3D视图坐标是视图坐标系（观察坐标系）中的3D坐标。视图坐标系的x轴从左向右，y轴从下到上，z轴从屏幕里到外（摄像机轴），原点是相机位置。右手坐标系。
+	// 裁剪坐标（设备标准化坐标系）：
+	// 	裁剪坐标是4维的（x, y, z, w）.它们传入顶点着色器的预定义变量gl_Position。在齐次坐标中，通常用四维的矢量（x，y，z，w）来表示三维空间中的点和矢量。当w=0时，表示矢量；当w=1时，表示一个点。左手坐标系
+	// 设备标准化坐标（设备标准化坐标系）：
+	// 	裁剪坐标会被转化为设备标准化坐标，通过Xn = x/w, Yn = y/w 和 Zn=z/w。屏幕上像素的位置是（Xn, Yn）,Zn用于深度缓存，当当前像素离摄像机最近则不会重新绘制。左手坐标系
+	// 	（Xn, Yn， Zn）都在1和-1之间。 (Xn=-1,Yn=-1) 是视口的左下角，(Xn=1,Yn=1)是视口的右上角。
+	//投影矩阵：把3D视图坐标A变为裁剪坐标A‘: A'=PA 
+	const projMatrix = LIBS.get_projection(40, canvas.width/canvas.height, 1, 100);
+	//旋转变换 P'=R*P ,R为旋转变换矩阵
+	//平移变换 P'=T+P ,T为平移变换矩阵
+	//模型变换矩阵，包括平移和旋转（缩放），4维矩阵：
+	// M = |R00 R01 R02 T0|    R : rotation matrix
+	//     |R10 R11 R12 T1|    T : translation vector
+	//     |R20 R21 R22 T2|
+	//     |0   0   0   1 |
+	const moveMatrix = LIBS.get_I4();  //用单位矩阵初始化模型变换矩阵
+	//3D编程中至少有两个参考系，物体参考系和摄像机参考系。
+	//视图变换将物体从物体参考系变为相机参考系。
+	//在应用中，先进行模型变换（MMatrix），再进行视图变换（VMatrix）。即：P' = VMatrix * MMatrix * P。
+	const viewMatrix = LIBS.get_I4();
+	LIBS.translateZ(viewMatrix, -5);  //
+
+
+
+
+	//渲染
+	gl.clearColor(0, 0, 0, 0);
+
+	gl.enable(gl.DEPTH_TEST); //激活深度比较，并更新depth buffer（深度缓存）。 depth buffer是一个视口大小的缓存。他存储了每个像素到摄像机的距离。
+								//这个距离单位化为【-1， 1】，在渲染片元着色器的每个像素前，webgl会查看这一位置的深度缓存的值。如果这个值小于该像素的深度值，则该像素不会渲染（因为有像素在当前像素前面）。
+								//渲染完像素后，depth buffer值会自动更新。
+	gl.depthFunc(gl.LEQUAL); //设置depth buffer 比较函数，用于比较传入的像素深度和当前depth buffer的值。满足条件的像素才会被渲染。可选值：
+								// gl.NEVER 从不通过
+								// gl.LESS 输入值小于 depth buffer值则通过，默认。
+								// gl.EQUAL 输入值等于 depth buffer值则通过
+								// gl.LEQUAL 输入值小于等于 depth buffer值则通过
+								// gl.GREATER 输入值大于 depth buffer值则通过
+								// gl.NOTEQUAL 输入值不等于 depth buffer值则通过
+								// gl.GEQUAL 输入值大于等于 depth buffer值则通过
+								// gl.ALWAYS 总是通过	
+	gl.clearDepth(1.0); //设置depth buffer的预设值
+
+	let oldTime = 0;
+	const animate = function (time) {
+		//运动
+		var dAngle=0.005*(time-oldTime);
+		LIBS.rotateX(moveMatrix, dAngle);
+		oldTime=time;
+		
+		gl.viewport(0, 0, canvas.width, canvas.height); 
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //清除buffers为预设值。通过 clearColor(), clearDepth() or clearStencil()预设。COLOR_BUFFER_BIT对应clearColor().
+		gl.uniformMatrix4fv(Pmatrix, false, projMatrix); //指定uniform变量的值
+			// void gl.uniformMatrix2fv(location, transpose, value);
+			// void gl.uniformMatrix3fv(location, transpose, value);
+			// void gl.uniformMatrix4fv(location, transpose, value); 
+			//参数：
+				// location： WebGLUniformLocation对象，表示uniform变量的位置。
+				// transpose：指定是否转置矩阵，必须为false.
+				// value： Float32Array，要付值给uniform变量。
+		gl.uniformMatrix4fv(Mmatrix, false, moveMatrix);
+		gl.uniformMatrix4fv(Vmatrix, false, viewMatrix);
+
+		//draw
+		gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+		gl.vertexAttribPointer(position, 3, gl.FLOAT, gl.FALSE, 4*(3+3), 0); 
+		gl.vertexAttribPointer(color, 3, gl.FLOAT, gl.FALSE, 4*(3+3), 3*4 );  
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffer);
+		gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);  
+
+		gl.flush();  
+
+
+		requestAnimationFrame(animate);  //requestAnimationFrame为函数传递一个时间戳作为参数
+	}
+
+	animate(0);
+</script>
+</body>
+</html>
